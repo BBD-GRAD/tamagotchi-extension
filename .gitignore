@@ -1,0 +1,14 @@
+## Directories ##
+# Build results
+bin/
+obj/
+out/
+
+# User-specific files
+.vs/
+.vscode/
+*.user
+*.userosscache
+*.suo
+*.userprefs
+*.ds_store
