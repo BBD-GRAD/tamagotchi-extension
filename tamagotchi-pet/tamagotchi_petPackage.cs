@@ -26,7 +26,7 @@ namespace tamagotchi_pet
     [PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
     [Guid(tamagotchi_petPackage.PackageGuidString)]
     [ProvideMenuResource("Menus.ctmenu", 1)]
-    [ProvideToolWindow(typeof(TamagotchiWindow))]
+    [ProvideToolWindow(typeof(TamagotchiWindow), Width = 200, Height = 200, Style = VsDockStyle.AlwaysFloat)]
     public sealed class tamagotchi_petPackage : AsyncPackage
     {
         /// <summary>
@@ -51,6 +51,6 @@ namespace tamagotchi_pet
             await TamagotchiWindowCommand.InitializeAsync(this);
         }
 
-        #endregion
+        #endregion Package Members
     }
 }
