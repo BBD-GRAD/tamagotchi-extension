@@ -1,11 +1,9 @@
-using Microsoft.AspNetCore.Builder;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
-using System.Linq;
-using System;
+using Microsoft.EntityFrameworkCore;
+using TamagotchiAPI.Data;
+using TamagotchiAPI.Controllers;
 
 namespace TamagotchiAPI
 {
@@ -20,7 +18,6 @@ namespace TamagotchiAPI
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
-            // Add authentication services with advanced configuration for issuer validation.
             builder.Services.AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -28,6 +25,7 @@ namespace TamagotchiAPI
             })
             .AddJwtBearer(options =>
             {
+                options.MapInboundClaims = false;
                 options.Authority = "https://accounts.google.com";
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
@@ -36,53 +34,32 @@ namespace TamagotchiAPI
                     ValidateAudience = true,
                     ValidAudience = "794918693940-j1kb0o1gi3utki6th2u6nmoc2i40kqbm.apps.googleusercontent.com",
                     ValidateLifetime = true,
-                    ValidateIssuerSigningKey = true
+                    ValidateIssuerSigningKey = true,
                 };
                 options.Events = new JwtBearerEvents
                 {
                     OnAuthenticationFailed = context =>
                     {
                         Console.WriteLine("Authentication failed: " + context.Exception.Message);
-                        return System.Threading.Tasks.Task.CompletedTask;
+                        return Task.CompletedTask;
                     },
                     OnTokenValidated = context =>
                     {
                         Console.WriteLine("Token validated");
-                        return System.Threading.Tasks.Task.CompletedTask;
+                        return Task.CompletedTask;
                     },
                     OnMessageReceived = context =>
                     {
                         Console.WriteLine("Token received: " + context.Token);
-                        return System.Threading.Tasks.Task.CompletedTask;
+                        return Task.CompletedTask;
                     }
                 };
             });
 
-            var app = builder.Build();
+            builder.Services.AddDbContext<ApplicationDbContext>(options =>
+                options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-            // Middleware to log the content of the JWT
-            app.Use(async (context, next) =>
-            {
-                if (context.Request.Headers.ContainsKey("Authorization"))
-                {
-                    var token = context.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
-                    try
-                    {
-                        var handler = new JwtSecurityTokenHandler();
-                        var jsonToken = handler.ReadToken(token) as JwtSecurityToken;
-                        Console.WriteLine("JWT Contents:");
-                        foreach (var claim in jsonToken.Claims)
-                        {
-                            Console.WriteLine($"{claim.Type}: {claim.Value}");
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine("Error parsing token: " + ex.Message);
-                    }
-                }
-                await next();
-            });
+            var app = builder.Build();
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
@@ -93,7 +70,7 @@ namespace TamagotchiAPI
 
             app.UseHttpsRedirection();
 
-            app.UseAuthentication(); // Ensure authentication is used before authorization
+            app.UseAuthentication();
             app.UseAuthorization();
 
             app.MapControllers();
