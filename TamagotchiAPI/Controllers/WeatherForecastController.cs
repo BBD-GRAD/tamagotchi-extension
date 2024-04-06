@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace TamagotchiAPI.Controllers
@@ -19,6 +20,7 @@ namespace TamagotchiAPI.Controllers
         }
 
         [HttpGet(Name = "GetWeatherForecast")]
+        [Authorize] // Protect this endpoint
         public IEnumerable<WeatherForecast> Get()
         {
             return Enumerable.Range(1, 5).Select(index => new WeatherForecast
