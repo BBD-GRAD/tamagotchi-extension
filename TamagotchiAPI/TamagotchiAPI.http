@@ -1,0 +1,6 @@
+@TamagotchiAPI_HostAddress = http://localhost:5221
+
+GET {{TamagotchiAPI_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

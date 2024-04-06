@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.9.34723.18
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TamagotchiAPI", "TamagotchiAPI.csproj", "{08410DB1-57AF-43AA-8876-1ADE29692AFA}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{08410DB1-57AF-43AA-8876-1ADE29692AFA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{08410DB1-57AF-43AA-8876-1ADE29692AFA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{08410DB1-57AF-43AA-8876-1ADE29692AFA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{08410DB1-57AF-43AA-8876-1ADE29692AFA}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {A6C2FAF7-BE08-4B8D-95C4-352C77DB6A07}
+	EndGlobalSection
+EndGlobal
