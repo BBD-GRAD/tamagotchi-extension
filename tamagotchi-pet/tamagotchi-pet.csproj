@@ -84,6 +84,7 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
+    <Resource Include="Resources\background.png" />
     <Content Include="Resources\TamagotchiWindowCommand.png" />
     <VSCTCompile Include="tamagotchi_petPackage.vsct">
       <ResourceName>Menus.ctmenu</ResourceName>
