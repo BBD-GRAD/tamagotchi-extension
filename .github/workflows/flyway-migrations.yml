@@ -6,7 +6,7 @@ on:
       - "main"
       - "feature/arinaho/database-setup"
     paths:
-      - 'tamagotchi-database/scripts/**'
+      - 'tamagotchi-database/**'
 
   workflow_dispatch:
 
@@ -19,8 +19,8 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v3
 
-    - name: Copy Flyway config file
-      run: cp flyway.conf tamagotchi-database/flyway/flyway.conf
+    - name: Copy flyway config file
+      run: cp tamagotchi-database/flyway/flyway.conf flyway.conf
 
     - name: Run Flyway Migration
       run: |
