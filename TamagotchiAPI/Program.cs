@@ -27,7 +27,6 @@ namespace TamagotchiAPI
 
             app.UseAuthorization();
 
-
             app.MapControllers();
 
             app.Run();
