@@ -19,4 +19,4 @@ phases:
       - dotnet publish -c Release -o ./output/TamagotchiAPI TamagotchiAPI/TamagotchiAPI.csproj
 artifacts:
   files:
-    - 'output/TamagotchiAPI'
+    - '/output/TamagotchiAPI/TamagotchiAPI.dll'
