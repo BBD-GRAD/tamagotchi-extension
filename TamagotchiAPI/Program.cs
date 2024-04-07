@@ -18,6 +18,15 @@ namespace TamagotchiAPI
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
+            // Configure CORS to allow any origin, header, and method
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("OpenCORS", builder =>
+                    builder.AllowAnyOrigin()
+                           .AllowAnyMethod()
+                           .AllowAnyHeader());
+            });
+
             builder.Services.AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
