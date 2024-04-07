@@ -14,5 +14,5 @@ GO
 
 -- Insert data into the table
 INSERT INTO example_table (id, name) VALUES (1, 'Example 1');
-INSERT INTO example_table (id, name) VALUES (2, 'Example 2_v6');
+INSERT INTO example_table (id, name) VALUES (2, 'Example 2_v7');
 GO
