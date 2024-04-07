@@ -13,6 +13,6 @@ CREATE TABLE dbo.example_table (
 GO
 
 -- Insert data into the table
-INSERT INTO dbo.example_table (id, name) VALUES (1, 'Example 1');
+INSERT INTO dbo.example_table (id, name) VALUES (1, 'Example 1s');
 INSERT INTO dbo.example_table (id, name) VALUES (2, 'Example 2');
 GO
