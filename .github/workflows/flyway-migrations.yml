@@ -6,7 +6,7 @@ on:
       - "main"
       - "feature/arinaho/database-setup"
     paths:
-      - 'tamagotchi-database/**'
+      - 'tamagotchi-database/scripts/**'
 
   workflow_dispatch:
 
