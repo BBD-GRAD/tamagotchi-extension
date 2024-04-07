@@ -16,7 +16,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
       - name: Copy flyway config file
-        run: cp tamagotchi-database\flyway\flyway.conf 
+        run: cp tamagotchi-database\flyway\flyway.conf flyway.conf
       - name: Update
         run: sudo apt update
       - name: install snapd
