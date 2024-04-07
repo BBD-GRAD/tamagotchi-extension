@@ -1,0 +1,25 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      dotnet: 6.0
+
+  pre_build:
+    commands:
+      - echo Restore started on `date`
+      - dotnet restore TamagotchiAPI/TamagotchiAPI.csproj
+
+  build:
+    commands:
+      - echo Build started on `date`
+      - dotnet build TamagotchiAPI/TamagotchiAPI.csproj
+
+  post_build:
+    commands:
+      - echo Publish started on `date`
+      - dotnet publish -c Release -o ./ TamagotchiAPI/TamagotchiAPI.csproj
+
+artifacts:
+  files:
+    - '**/*'
