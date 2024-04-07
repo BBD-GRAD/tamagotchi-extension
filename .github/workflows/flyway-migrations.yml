@@ -19,7 +19,10 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v3
 
+    - name: Copy Flyway config file
+      run: cp flyway.conf tamagotchi-database/flyway/flyway.conf
+
     - name: Run Flyway Migration
       run: |
         sudo snap install flyway
-        flyway migrate -configFiles=/tamagotchi-database/flyway/flyway.conf
+        flyway migrate -configFiles=tamagotchi-database/flyway/flyway.conf
