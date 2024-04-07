@@ -26,4 +26,4 @@ jobs:
       - name: Install Flyway 
         run: sudo snap install flyway
       - name: Run flyway
-        run: flyway migrate -password=$<W1a%2+WmiJK$ZkkyJ[GZTR{+<2 #TODO: move this to secrets
+        run: flyway migrate -password="$'<W1a%2+WmiJK\$ZkkyJ[GZTR{+<2'" #move this password to secrets
