@@ -2,28 +2,24 @@ name: Database Migration with Flyway
 
 on:
   push:
-    branches: [ "main", "feature/arinaho/database-setup" ]
+    branches: 
+      - "main"
+      - "feature/arinaho/database-setup"
     paths:
       - 'tamagotchi-database/scripts/**'
 
   workflow_dispatch:
 
 jobs:
-  test-migrations:
-    name: Run flyway migration scripts
+  migrate-database:
+    name: Run Flyway Migration
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-      - name: Copy flyway config file
-        run: cp tamagotchi-database/flyway/flyway.conf flyway.conf
-      - name: check the config file
-        run: ls
-      - name: Update
-        run: sudo apt update
-      - name: install snapd
-        run: sudo apt install snapd
-      - name: Install Flyway 
-        run: sudo snap install flyway
-      - name: Run flyway
-        run: flyway migrate -password="$'<W1a%2+WmiJK\$ZkkyJ[GZTR{+<2'" #move this password to secrets
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Run Flyway Migration
+      run: |
+        sudo snap install flyway
+        flyway migrate -configFiles=/tamagotchi-database/flyway/flyway.conf

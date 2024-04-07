@@ -1,18 +1,18 @@
 -- Drop the table if it exists
-IF OBJECT_ID('example_table', 'U') IS NOT NULL
+IF OBJECT_ID('dbo.example_table', 'U') IS NOT NULL
 BEGIN
-    DROP TABLE example_table;
+    DROP TABLE dbo.example_table;
 END
 GO
 
 -- Create the table
-CREATE TABLE example_table (
+CREATE TABLE dbo.example_table (
     id INT PRIMARY KEY,
     name VARCHAR(100)
 );
 GO
 
 -- Insert data into the table
-INSERT INTO example_table (id, name) VALUES (1, 'Example 1');
-INSERT INTO example_table (id, name) VALUES (2, 'Example 2_v9');
+INSERT INTO dbo.example_table (id, name) VALUES (1, 'Example 1');
+INSERT INTO dbo.example_table (id, name) VALUES (2, 'Example 2');
 GO
