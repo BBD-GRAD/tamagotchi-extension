@@ -16,7 +16,7 @@ phases:
   post_build:
     commands:
       - echo Publish started on `date`
-      - dotnet publish -c Release -o ./ TamagotchiAPI/TamagotchiAPI.csproj
+      - dotnet publish -c Release -o ./output/TamagotchiAPI TamagotchiAPI/TamagotchiAPI.csproj
 artifacts:
   files:
     - /**/*

@@ -1,1 +1,1 @@
-web: dotnet TamagotchiAPI.dll
+web: dotnet ./output/TamagotchiAPI/TamagotchiAPI.dll
