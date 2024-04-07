@@ -52,13 +52,13 @@
     <Compile Include="Models\User.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Services\ApiService.cs" />
-    <Compile Include="Services\SessionService.cs" />
     <Compile Include="TamagotchiWindow.cs" />
     <Compile Include="TamagotchiWindowCommand.cs" />
     <Compile Include="TamagotchiWindowControl.xaml.cs">
       <DependentUpon>TamagotchiWindowControl.xaml</DependentUpon>
     </Compile>
     <Compile Include="tamagotchi_petPackage.cs" />
+    <Compile Include="Utils\AuthFlow.cs" />
     <Compile Include="Utils\SecureTokenStorage.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -103,6 +103,7 @@
     <Resource Include="Resources\background.png" />
     <Resource Include="Resources\account.png" />
     <Resource Include="Resources\settings.png" />
+    <Resource Include="Resources\pet.png" />
     <Content Include="Resources\TamagotchiWindowCommand.png" />
     <VSCTCompile Include="tamagotchi_petPackage.vsct">
       <ResourceName>Menus.ctmenu</ResourceName>

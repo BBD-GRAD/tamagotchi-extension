@@ -71,8 +71,9 @@ namespace tamagotchi_pet.Services
             }
         }
 
-        public static async Task<(bool success, string message)> CreatePetAsync(string idToken, string petName)
+        public static async Task<(bool success, string message, Pet pet)> CreatePetAsync(string idToken, string petName)
         {
+            HttpClient client = new HttpClient();
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", idToken);
 
             var petDTO = new
@@ -87,16 +88,18 @@ namespace tamagotchi_pet.Services
                 HttpResponseMessage response = await client.PostAsync("api/Pet", contentString);
                 if (response.IsSuccessStatusCode)
                 {
-                    return (true, "Pet created successfully.");
+                    string responseBody = await response.Content.ReadAsStringAsync();
+                    Pet createdPet = JsonConvert.DeserializeObject<Pet>(responseBody);
+                    return (true, "Pet created successfully.", createdPet);
                 }
                 else
                 {
-                    return (false, $"Failed to create pet: {response.ReasonPhrase}");
+                    return (false, $"Failed to create pet: {response.ReasonPhrase}", null);
                 }
             }
             catch (HttpRequestException e)
             {
-                return (false, $"Network error: {e.Message}");
+                return (false, $"Network error: {e.Message}", null);
             }
         }
     }
