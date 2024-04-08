@@ -1,21 +1,23 @@
----
 version: 0.2
 phases:
   install:
+    runtime-versions:
+      dotnet: 8.0
+  pre_build:
     commands:
-      - curl -sSL https://dot.net/v1/dotnet-install.sh | bash /dev/stdin
-        --channel 8.0
+      - echo Restore started on `date`
+      - dotnet restore TamagotchiAPI/TamagotchiAPI.csproj
   build:
     commands:
       - echo Build started on `date`
-      - dotnet build demo.api/demo.api/demo.api.csproj
+      - dotnet build TamagotchiAPI/TamagotchiAPI.csproj
+      - echo Test started on `date`
+      - dotnet test TamagotchiAPI/TamagotchiAPI.csproj
   post_build:
     commands:
       - echo Publish started on `date`
-      - dotnet publish -c Release -o ./build-output
-        demo.api/demo.api/demo.api.csproj
+      - dotnet publish -c Release -o ./output TamagotchiAPI/TamagotchiAPI.csproj
 artifacts:
-  name: DEMO_API_Build_#$CODEBUILD_BUILD_NUMBER
-  base-directory: ./build-output
+  base-directory: './output'
   files:
     - ./**/*
