@@ -7,7 +7,7 @@ CREATE TABLE dbo.Statuses (
 GO
 
 CREATE TABLE dbo.Settings (
-    setting_id BIGINT NOT NULL,
+    setting_id INT NOT NULL,
     theme VARCHAR(50) NOT NULL,
     CONSTRAINT settings_setting_id_primary PRIMARY KEY (setting_id)
 );
