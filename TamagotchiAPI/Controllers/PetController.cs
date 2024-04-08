@@ -66,6 +66,7 @@ namespace TamagotchiAPI.Controllers
             {
                 UserId = userId,
                 PetName = petDTO.PetName,
+                // Initial pet stats
                 XP = 0,
                 Happiness = 50,
             };

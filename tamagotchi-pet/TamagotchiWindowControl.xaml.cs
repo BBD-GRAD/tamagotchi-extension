@@ -46,6 +46,35 @@ namespace tamagotchi_pet
 
             targetX = Canvas.GetLeft(petImage);
             targetY = Canvas.GetTop(petImage);
+
+            Loaded += OnLoaded; // Handle loaded event to start async operations
+        }
+
+        private async void OnLoaded(object sender, RoutedEventArgs e)
+        {
+            await InitializePetAsync();
+        }
+
+        //TODO rename and init user settings also
+        private async Task InitializePetAsync()
+        {
+            Dictionary<string, string> retrievedTokens = SecureTokenStorage.RetrieveTokens();
+            string idToken = retrievedTokens["id_token"];
+
+            if (!string.IsNullOrEmpty(idToken))
+            {
+                var (hasPet, petMessage, pet) = await ApiService.GetPetAsync(idToken);
+                if (hasPet)
+                {
+                    MessageBox.Show("Pet already exists: " + pet.PetName); // debug
+                    _pet = pet;
+                    petNameLabel.Text = _pet.PetName;
+                }
+                else
+                {
+                    MessageBox.Show(petMessage); // Show why the pet was not retrieved or created
+                }
+            }
         }
 
         private void GameLoop(object sender, EventArgs e)
