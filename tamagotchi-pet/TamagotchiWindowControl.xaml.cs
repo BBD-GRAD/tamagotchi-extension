@@ -16,7 +16,10 @@ using System.Windows.Threading;
 using tamagotchi_pet.Dialogs;
 using tamagotchi_pet.Services;
 using tamagotchi_pet.Utils;
-using TamagotchiAPI.Models;
+using tamagotchi_pet.Models;
+using Serilog;
+using Newtonsoft.Json.Linq;
+using System.Windows.Media;
 
 namespace tamagotchi_pet
 {
@@ -25,73 +28,152 @@ namespace tamagotchi_pet
     /// </summary>
     public partial class TamagotchiWindowControl : UserControl
     {
-        // client configuration
+        private DispatcherTimer gameTimer;
+        private Pet _pet = null;
+        private double targetX, targetY;
+        private Dictionary<string, string> _tokens;
+        private double refreshRate = 1_000; // ms
+        private double simulationSpeed = 60;
+
+        private bool needWater = false;
+        private double _waterElapsedTime = 0;
+        private double _waterTimeOver = 0;
+        private double _gracePeriod = 600_000;
+        private double timeToDie = 800_000;
+
+        private double waterRefillTime = 300_000;
+
+        private double _waterNeedTime = 3_600_000;
+
+        private bool IsEating = false;
+        private bool dyingFromThirst = false;
+
+        private bool IsDrinking = false;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="TamagotchiWindowControl"/> class.
         /// </summary>
-        private DispatcherTimer gameTimer;
-
-        private double targetX, targetY;
-        private Pet _pet;
+        ///
+        static TamagotchiWindowControl()
+        {
+            Log.Logger = new LoggerConfiguration()
+                .MinimumLevel.Debug()
+                .WriteTo.File("logs/tamagotchi.log", rollingInterval: RollingInterval.Day)
+                .CreateLogger();
+        }
 
         public TamagotchiWindowControl()
         {
             InitializeComponent();
+            petImage.Visibility = Visibility.Hidden;
+            waterImage.Visibility = Visibility.Hidden;
+            Loaded += OnLoaded; //user settigns TODO
+        }
 
-            gameTimer = new DispatcherTimer();
-            gameTimer.Interval = TimeSpan.FromMilliseconds(2000);
+        private void StartGame()
+        {
+            gameTimer = new DispatcherTimer
+            {
+                Interval = TimeSpan.FromMilliseconds(refreshRate)
+            };
             gameTimer.Tick += GameLoop;
             gameTimer.Start();
 
             targetX = Canvas.GetLeft(petImage);
             targetY = Canvas.GetTop(petImage);
-
-            Loaded += OnLoaded; // Handle loaded event to start async operations
         }
 
         private async void OnLoaded(object sender, RoutedEventArgs e)
         {
-            await InitializePetAsync();
-        }
-
-        //TODO rename and init user settings also
-        private async Task InitializePetAsync()
-        {
-            Dictionary<string, string> retrievedTokens = SecureTokenStorage.RetrieveTokens();
-            string idToken = retrievedTokens["id_token"];
-
-            if (!string.IsNullOrEmpty(idToken))
+            Dictionary<string, string> retrievedTokens = TokenStorage.RetrieveTokens();
+            if (retrievedTokens.Count == 0)
             {
-                var (hasPet, petMessage, pet) = await ApiService.GetPetAsync(idToken);
-                if (hasPet)
-                {
-                    MessageBox.Show("Pet already exists: " + pet.PetName); // debug
-                    _pet = pet;
-                    petNameLabel.Text = _pet.PetName;
-                }
-                else
-                {
-                    MessageBox.Show(petMessage); // Show why the pet was not retrieved or created
-                }
-            }
-        }
-
-        private void GameLoop(object sender, EventArgs e)
-        {
-            if (_pet == null)
-            {
-                petImage.Visibility = Visibility.Hidden;
-                return;
+                Logging.Logger.Debug("OnLoaded: No token file found");
+                MessageBox.Show("No previous session tokens found please login.");
             }
             else
             {
-                petImage.Visibility = Visibility.Visible;
+                Logging.Logger.Debug("OnLoaded: Tokens retrieved successfully.");
+                _tokens = retrievedTokens;
+                _pet = await ApiService.GetPetAsync(_tokens["id_token"]);
+                petNameLabel.Text = _pet?.PetName;
+                //get settings
             }
-
-            GenerateNewTargetPosition();
-            AnimatePetToPosition(targetX, targetY);
+            StartGame();
         }
+
+        private async void GameLoop(object sender, EventArgs e)
+        {
+            double delta = refreshRate * simulationSpeed;
+            if (_pet == null)
+            {
+                petImage.Visibility = Visibility.Hidden;
+
+                Logging.Logger.Debug("GameLoop: No pet found.");
+                CreatePetDialog inputDialog = new CreatePetDialog();
+                if (inputDialog.ShowDialog() == true)
+                {
+                    _pet = await ApiService.CreatePetAsync(_tokens["id_token"], inputDialog.ResponseText);
+                    petNameLabel.Text = _pet?.PetName;
+                    Logging.Logger.Debug("GameLoop: Pet created: " + _pet?.PetName);
+                }
+            }
+            else
+            {
+                Logging.Logger.Debug($"GameLoop: PET {_pet?.PetName} Water (dyingfrom:{dyingFromThirst}): {_pet.Water:F2} Health: {_pet.Health:F2}");
+
+                petImage.Visibility = Visibility.Visible;
+                GenerateNewTargetPosition();
+                AnimatePetToPosition(targetX, targetY);
+
+                _pet.XP += (delta) / 1000; //bigint?
+
+                if (!IsDrinking)
+                {
+                    _pet.Water = Math.Max(0, _pet.Water - 100 / (_waterNeedTime / (delta)));
+                    BtnWater.Background = new SolidColorBrush(Colors.Gray);
+                }
+                else
+                {
+                    _pet.Water = Math.Min(100, _pet.Water + 100 / (waterRefillTime / (delta)));
+                    BtnWater.Background = new SolidColorBrush(Colors.Blue);
+                }
+
+                if (_pet.Water == 0)
+                {
+                    if (!dyingFromThirst)
+                    {
+                        _waterTimeOver += delta;
+                    }
+                    if (_waterTimeOver >= _gracePeriod)
+                    {
+                        dyingFromThirst = true;
+                        _waterTimeOver = 0;
+                    }
+                    waterImage.Visibility = Visibility.Visible;
+                }
+                else if (_pet.Water == 100)
+                {
+                    IsDrinking = false;
+                }
+                else
+                {
+                    waterImage.Visibility = Visibility.Hidden;
+                    dyingFromThirst = false;
+                }
+
+                if (dyingFromThirst)
+                {
+                    _pet.Health = Math.Max(0, _pet.Health - 100 / (timeToDie / (refreshRate * simulationSpeed)));
+                }
+            }
+        }
+
+        //private bool needWater = false;
+        //private double _waterElapsedTime = 0;
+        //private double _waterTimeOver = 0;
+        //private double _gracePeriod = 300_000;
+        //private double _waterNeedTime = 3_600_000;
 
         private void GenerateNewTargetPosition() //TODO move all this to own class
         {
@@ -146,13 +228,6 @@ namespace tamagotchi_pet
             // Check conditions and update game state accordingly
         }
 
-        /// <summary>
-        /// Handles click on the button by displaying a message box.
-        /// </summary>
-        /// <param name="sender">The event sender.</param>
-        /// <param name="e">The event args.</param>
-        [SuppressMessage("Microsoft.Globalization", "CA1300:SpecifyMessageBoxOptions", Justification = "Sample code")]
-        [SuppressMessage("StyleCop.CSharp.NamingRules", "SA1300:ElementMustBeginWithUpperCaseLetter", Justification = "Default event handler naming pattern")]
         private void button1_Click(object sender, RoutedEventArgs e)
         {
             MessageBox.Show(
@@ -160,11 +235,18 @@ namespace tamagotchi_pet
                 "TamagotchiWindow");
         }
 
-        private void button2_Click(object sender, RoutedEventArgs e)
+        private void BtnWater_Click(object sender, RoutedEventArgs e)
         {
-            MessageBox.Show(
-                string.Format(System.Globalization.CultureInfo.CurrentUICulture, "Button 2 Invoked '{0}'", this.ToString()),
-                "TamagotchiWindow");
+            if (IsDrinking)
+            {
+                IsDrinking = false;
+                BtnWater.Background = new SolidColorBrush(Colors.Gray);
+            }
+            else
+            {
+                IsDrinking = true;
+                BtnWater.Background = new SolidColorBrush(Colors.Blue);
+            }
         }
 
         private void button3_Click(object sender, RoutedEventArgs e)
@@ -178,31 +260,10 @@ namespace tamagotchi_pet
         {
             await AuthFlow.StartAuth();
 
-            Window parentWindow = Window.GetWindow(this);
-            parentWindow?.Activate();
-
-            Dictionary<string, string> retrievedTokens = SecureTokenStorage.RetrieveTokens();
-            string idToken = retrievedTokens["id_token"];
-
-            var (hasPet, petMessage, pet) = await ApiService.GetPetAsync(idToken);
-            if (!hasPet)
-            {
-                MessageBox.Show(petMessage);
-                InputDialog inputDialog = new InputDialog();
-                if (inputDialog.ShowDialog() == true)
-                {
-                    string petName = inputDialog.ResponseText;
-                    var (createSuccess, createMessage, createdPet) = await ApiService.CreatePetAsync(idToken, petName);
-                    MessageBox.Show(createMessage); //check for empty text TODO
-                    _pet = createdPet;
-                }
-            }
-            else
-            {
-                MessageBox.Show("Pet already exists: " + pet.PetName); // debug
-                _pet = pet;
-            }
-            petNameLabel.Text = _pet.PetName;
+            Dictionary<string, string> retrievedTokens = TokenStorage.RetrieveTokens();
+            _tokens = retrievedTokens;
+            _pet = await ApiService.GetPetAsync(_tokens["id_token"]);
+            petNameLabel.Text = _pet?.PetName;
         }
 
         private void BtnSettings(object sender, RoutedEventArgs e)

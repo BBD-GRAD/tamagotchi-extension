@@ -44,11 +44,14 @@
             <Image Name="petImage" Source="pack://application:,,,/tamagotchi-pet;component/Resources/pet.png"
            Width="30" Height="30" Canvas.Left="82" Canvas.Top="56"
            HorizontalAlignment="Center" VerticalAlignment="Top" />
+            <Image Name="waterImage" Source="pack://application:,,,/tamagotchi-pet;component/Resources/water.png"
+Width="20" Height="20" Canvas.Left="142" Canvas.Top="90"
+HorizontalAlignment="Left" VerticalAlignment="Center" />
         </Canvas>
 
         <Canvas>
-            <Button Content="" Name="button1" Style="{StaticResource RoundButton}"
-                    Canvas.Left="82" Canvas.Top="168" Height="33" Width="33" HorizontalAlignment="Left" VerticalAlignment="Top"  Click="button2_Click" />
+            <Button Content="" Name="BtnWater" Style="{StaticResource RoundButton}"
+                    Canvas.Left="82" Canvas.Top="168" Height="33" Width="33" HorizontalAlignment="Left" VerticalAlignment="Top"  Click="BtnWater_Click" />
 
             <Button Content="" Name="button2" Style="{StaticResource RoundButton}"
                     Canvas.Left="31" Canvas.Top="151" Height="33" Width="33" HorizontalAlignment="Left" VerticalAlignment="Top" Click="button1_Click" />

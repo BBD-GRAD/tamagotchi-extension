@@ -1,15 +1,12 @@
 ﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
-using System.Windows;
-using tamagotchi_pet.Services;
 
 namespace tamagotchi_pet.Utils
 {
@@ -39,12 +36,12 @@ namespace tamagotchi_pet.Utils
 
             // Creates a redirect URI using an available port on the loopback address.
             string redirectURI = string.Format("http://{0}:{1}/", IPAddress.Loopback, GetRandomUnusedPort());
-            output("redirect URI: " + redirectURI);
+            Logging.Logger.Debug("redirect URI: " + redirectURI);
 
             // Creates an HttpListener to listen for requests on that redirect URI.
             var http = new HttpListener();
             http.Prefixes.Add(redirectURI);
-            output("Listening..");
+            Logging.Logger.Debug("Listening..");
             http.Start();
 
             // Creates the OAuth 2.0 authorization request.
@@ -79,13 +76,13 @@ namespace tamagotchi_pet.Utils
             // Checks for errors.
             if (context.Request.QueryString.Get("error") != null)
             {
-                output(String.Format("OAuth authorization error: {0}.", context.Request.QueryString.Get("error")));
+                Logging.Logger.Debug(String.Format("OAuth authorization error: {0}.", context.Request.QueryString.Get("error")));
                 return;
             }
             if (context.Request.QueryString.Get("code") == null
                 || context.Request.QueryString.Get("state") == null)
             {
-                output("Malformed authorization response. " + context.Request.QueryString);
+                Logging.Logger.Debug("Malformed authorization response. " + context.Request.QueryString);
                 return;
             }
 
@@ -97,10 +94,10 @@ namespace tamagotchi_pet.Utils
             // this app made the request which resulted in authorization.
             if (incoming_state != state)
             {
-                output(String.Format("Received request with invalid state ({0})", incoming_state));
+                Logging.Logger.Debug(String.Format("Received request with invalid state ({0})", incoming_state));
                 return;
             }
-            output("Authorization code: " + code);
+            Logging.Logger.Debug("Authorization code: " + code);
 
             // Starts the code exchange at the Token Endpoint.
             await performCodeExchange(code, code_verifier, redirectURI);
@@ -108,7 +105,7 @@ namespace tamagotchi_pet.Utils
 
         private static async Task performCodeExchange(string code, string code_verifier, string redirectURI)
         {
-            output("Exchanging code for tokens...");
+            Logging.Logger.Debug("Exchanging code for tokens...");
 
             // builds the  request
             string tokenRequestURI = "https://www.googleapis.com/oauth2/v4/token";
@@ -117,7 +114,7 @@ namespace tamagotchi_pet.Utils
                 System.Uri.EscapeDataString(redirectURI),
                 clientID,
                 code_verifier,
-                clientSecret //why google
+                clientSecret
                 );
 
             // sends the request
@@ -127,31 +124,21 @@ namespace tamagotchi_pet.Utils
             tokenRequest.Accept = "Accept=text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8";
             byte[] _byteVersion = Encoding.ASCII.GetBytes(tokenRequestBody);
             tokenRequest.ContentLength = _byteVersion.Length;
-            Stream stream = tokenRequest.GetRequestStream();
+            Stream stream = await tokenRequest.GetRequestStreamAsync();
             await stream.WriteAsync(_byteVersion, 0, _byteVersion.Length);
             stream.Close();
 
             try
             {
-                // gets the response
                 WebResponse tokenResponse = await tokenRequest.GetResponseAsync();
                 using (StreamReader reader = new StreamReader(tokenResponse.GetResponseStream()))
                 {
-                    // reads response body
                     string responseText = await reader.ReadToEndAsync();
-                    output(responseText);
-
-                    // converts to dictionary
+                    Logging.Logger.Debug(responseText);
                     Dictionary<string, string> tokenEndpointDecoded = JsonConvert.DeserializeObject<Dictionary<string, string>>(responseText);
 
-                    //SessionService.HandleLogin(tokenEndpointDecoded["id_token"]);
-
                     // Storing tokens
-                    SecureTokenStorage.StoreTokens(tokenEndpointDecoded);
-
-                    //// Retrieving tokens when needed
-                    //Dictionary<string, string> retrievedTokens = SecureTokenStorage.RetrieveTokens();
-                    //string accessToken = retrievedTokens["access_token"];
+                    TokenStorage.StoreTokens(tokenEndpointDecoded);
                 }
             }
             catch (WebException ex)
@@ -161,32 +148,17 @@ namespace tamagotchi_pet.Utils
                     var response = ex.Response as HttpWebResponse;
                     if (response != null)
                     {
-                        output("HTTP: " + response.StatusCode);
+                        Logging.Logger.Debug("HTTP: " + response.StatusCode);
                         using (StreamReader reader = new StreamReader(response.GetResponseStream()))
                         {
-                            // reads response body
                             string responseText = await reader.ReadToEndAsync();
-                            output(responseText);
+                            Logging.Logger.Debug(responseText);
                         }
                     }
                 }
             }
         }
 
-        /// <summary>
-        /// Appends the given string to the on-screen log, and the debug console.
-        /// </summary>
-        /// <param name="output">string to be appended</param>
-        public static void output(string output)
-        {
-            Trace.WriteLine(output);
-        }
-
-        /// <summary>
-        /// Returns URI-safe data with a given input length.
-        /// </summary>
-        /// <param name="length">Input length (nb. output will be longer)</param>
-        /// <returns></returns>
         public static string randomDataBase64url(uint length)
         {
             RNGCryptoServiceProvider rng = new RNGCryptoServiceProvider();
@@ -195,11 +167,6 @@ namespace tamagotchi_pet.Utils
             return base64urlencodeNoPadding(bytes);
         }
 
-        /// <summary>
-        /// Returns the SHA256 hash of the input string.
-        /// </summary>
-        /// <param name="inputStirng"></param>
-        /// <returns></returns>
         public static byte[] sha256(string inputStirng)
         {
             byte[] bytes = Encoding.ASCII.GetBytes(inputStirng);
@@ -207,21 +174,12 @@ namespace tamagotchi_pet.Utils
             return sha256.ComputeHash(bytes);
         }
 
-        /// <summary>
-        /// Base64url no-padding encodes the given input buffer.
-        /// </summary>
-        /// <param name="buffer"></param>
-        /// <returns></returns>
         public static string base64urlencodeNoPadding(byte[] buffer)
         {
             string base64 = Convert.ToBase64String(buffer);
-
-            // Converts base64 to base64url.
             base64 = base64.Replace("+", "-");
             base64 = base64.Replace("/", "_");
-            // Strips padding.
             base64 = base64.Replace("=", "");
-
             return base64;
         }
     }
