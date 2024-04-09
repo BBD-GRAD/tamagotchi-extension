@@ -1,4 +1,7 @@
--- Drop existing tables
+ALTER TABLE dbo.Pets DROP CONSTRAINT pets_status_id_foreign;
+ALTER TABLE dbo.Owners DROP CONSTRAINT owners_setting_id_foreign;
+ALTER TABLE dbo.Pets DROP CONSTRAINT pets_owner_id_foreign;
+
 DROP TABLE dbo.Statuses;
 DROP TABLE dbo.Settings;
 DROP TABLE dbo.Owners;
