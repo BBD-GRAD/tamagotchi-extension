@@ -16,7 +16,7 @@ namespace tamagotchi_pet.Services
 
         static ApiService()
         {
-            client.BaseAddress = new Uri("https://localhost:32770/"); //change
+            client.BaseAddress = new Uri("https://localhost:32778/"); //change env var TODO
             client.DefaultRequestHeaders.Accept.Clear();
             client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         }

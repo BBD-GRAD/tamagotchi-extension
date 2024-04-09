@@ -15,7 +15,7 @@ namespace tamagotchi_pet.Utils
 {
     internal static class AuthFlow
     {
-        private const string clientID = "794918693940-j1kb0o1gi3utki6th2u6nmoc2i40kqbm.apps.googleusercontent.com";
+        private const string clientID = "794918693940-j1kb0o1gi3utki6th2u6nmoc2i40kqbm.apps.googleusercontent.com"; //TODO STORE ENV VARIABLES
         private const string clientSecret = "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";
         private const string authorizationEndpoint = "https://accounts.google.com/o/oauth2/v2/auth";
 
