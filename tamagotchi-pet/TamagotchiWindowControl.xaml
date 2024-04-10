@@ -39,34 +39,48 @@
         </Grid.Background>
         <Canvas Name="gameCanvas">
             <Rectangle x:Name="movementArea" Stroke="Black" StrokeThickness="2" Margin="31,16,34,87" />
-            <TextBlock Name="petNameLabel" Text="Pet Name" Canvas.Left="62" Canvas.Top="129"
-               TextAlignment="Center" Width="70" />
-            <Image Name="petImage" Source="pack://application:,,,/tamagotchi-pet;component/Resources/pet.png"
-                Width="30" Height="30" Canvas.Left="82" Canvas.Top="56"
-                HorizontalAlignment="Center" VerticalAlignment="Top" />
+            <Canvas Name="petCanvas">
+                <Canvas.RenderTransform>
+                    <TranslateTransform x:Name="petCanvasTranslateTransform" />
+                </Canvas.RenderTransform>
+                <TextBlock x:Name="petNameLabel" Text="Pet name" Canvas.Left="75" Canvas.Top="38"
+               FontSize="10" FontWeight="Bold" Foreground="Black">
+                    <TextBlock.Effect>
+                        <BlurEffect Radius="1" />
+                    </TextBlock.Effect>
+                </TextBlock>
+                <Image Name="petImage" Source="pack://application:,,,/tamagotchi-pet;component/Resources/pet.png"
+           Width="30" Height="30" Canvas.Left="82" Canvas.Top="56" />
+            </Canvas>
             <Image Name="waterImage" Source="pack://application:,,,/tamagotchi-pet;component/Resources/water.png"
-                Width="20" Height="20" Canvas.Left="142" Canvas.Top="90"
-                HorizontalAlignment="Left" VerticalAlignment="Center" />
+                Width="20" Height="20" Canvas.Left="142" Canvas.Top="90" />
+
             <Image Name="foodImage" Source="pack://application:,,,/tamagotchi-pet;component/Resources/food2.png"
-                Width="20" Height="20" Canvas.Left="102" Canvas.Top="90"
-                HorizontalAlignment="Left" VerticalAlignment="Top" />
+                Width="20" Height="20" Canvas.Left="102" Canvas.Top="90" />
+
             <Image Name="staminaImage" Source="pack://application:,,,/tamagotchi-pet;component/Resources/stamina.png"
-                Width="20" Height="20" Canvas.Left="122" Canvas.Top="90"
-                HorizontalAlignment="Left" VerticalAlignment="Center" />
+                Width="20" Height="20" Canvas.Left="122" Canvas.Top="90" />
+
+            <TextBlock x:Name="xpLabel" Text="XP: 0" Canvas.Left="37" Canvas.Top="93"
+           FontSize="10" FontWeight="Bold" Foreground="Black">
+                <TextBlock.Effect>
+                    <BlurEffect Radius="1" />
+                </TextBlock.Effect>
+            </TextBlock>
         </Canvas>
 
         <Canvas>
             <Button Content="" Name="BtnFood" Style="{StaticResource RoundButton}"
-                Canvas.Left="31" Canvas.Top="151" Height="33" Width="33" HorizontalAlignment="Left" VerticalAlignment="Top" Click="BtnFood_Click" />
+                Canvas.Left="31" Canvas.Top="151" Height="33" Width="33" Click="BtnFood_Click" />
 
             <Button Content="" Name="BtnStamina" Style="{StaticResource RoundButton}"
-                Canvas.Left="84" Canvas.Top="168" Height="32" Width="32" HorizontalAlignment="Center" VerticalAlignment="Center" Click="BtnStamina_Click" />
+                Canvas.Left="84" Canvas.Top="168" Height="32" Width="32"  Click="BtnStamina_Click" />
 
             <Button Content="" Name="BtnWater" Style="{StaticResource RoundButton}"
-                Canvas.Left="134" Canvas.Top="151" Height="33" Width="32" HorizontalAlignment="Left" VerticalAlignment="Top"  Click="BtnWater_Click" />
+                Canvas.Left="134" Canvas.Top="151" Height="33" Width="32"  Click="BtnWater_Click" />
 
             <Button Name="loginButton" BorderThickness="0" Style="{StaticResource RoundButton}"
-                Canvas.Left="38" Canvas.Top="21" Height="20" Width="20" HorizontalAlignment="Left" VerticalAlignment="Top" Click="BtnAccount_Click">
+                Canvas.Left="38" Canvas.Top="21" Height="20" Width="20"  Click="BtnAccount_Click">
                 <Button.Background>
                     <ImageBrush ImageSource="pack://application:,,,/tamagotchi-pet;component/Resources/account.png" />
                 </Button.Background>

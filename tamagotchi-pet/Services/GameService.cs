@@ -11,13 +11,17 @@ namespace tamagotchi_pet.Services
     {
         private readonly Image petImage;
         private readonly Canvas gameCanvas;
+        private readonly Canvas petCanvas;
         private readonly Rectangle movementArea;
+        private readonly TranslateTransform petCanvasTranslateTransform;
 
-        public GameService(ref Image petImage, ref Canvas gameCanvas, ref Rectangle movementArea)
+        public GameService(ref Image petImage, ref Canvas gameCanvas, ref TranslateTransform petCanvasTranslateTransform, ref Rectangle movementArea)
         {
             this.petImage = petImage;
+            this.petCanvas = gameCanvas;
             this.gameCanvas = gameCanvas;
             this.movementArea = movementArea;
+            this.petCanvasTranslateTransform = petCanvasTranslateTransform;
         }
 
         private (double x, double y) GenerateNewTargetPosition()
@@ -62,8 +66,8 @@ namespace tamagotchi_pet.Services
                 EasingFunction = new QuadraticEase() { EasingMode = EasingMode.EaseInOut }
             };
 
-            petImage.BeginAnimation(Canvas.LeftProperty, xAnimation);
-            petImage.BeginAnimation(Canvas.TopProperty, yAnimation);
+            petCanvasTranslateTransform.BeginAnimation(TranslateTransform.XProperty, xAnimation);
+            petCanvasTranslateTransform.BeginAnimation(TranslateTransform.YProperty, yAnimation);
         }
 
         public double UpdateResource(double resource, double depletionTime, double refillTime, bool isActive, Button resourceButton, Color activeColor, Color inactiveColor, double delta, double resourceMax = 100)

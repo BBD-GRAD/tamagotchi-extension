@@ -18,7 +18,7 @@ namespace tamagotchi_pet.Models
         public string PetName { get; set; }
 
         [Required]
-        public double XP { get; set; }
+        public long XP { get; set; }
 
         [Required]
         public double Water { get; set; }
