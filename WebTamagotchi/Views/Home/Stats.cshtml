@@ -1,0 +1,45 @@
+﻿@{
+    ViewData["Title"] = "Stats";
+}
+@model Pet
+<h1>@ViewData["Title"]</h1>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <style>
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+        th, td {
+            border: 1px solid black;
+            padding: 8px;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+    <table border="1">
+        <thead>
+            <tr>
+                <th>Stat</th>
+                <th>Value</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Experience</td>
+                <td>@Model.XP</td>
+            </tr>
+            <tr>
+                <td>Happiness</td>
+                <td>@Model.Happiness</td>
+            </tr>
+        </tbody>
+    </table>
+</body>
+</html>

@@ -1,0 +1,48 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Randomly Moving Image</title>
+    <style>
+        #movingImage {
+            position: absolute;
+        }
+    </style>
+</head>
+<body>
+    <img id="movingImage" src="~/images/tamagotchi.png" alt="Moving Image">
+    <script>
+        // Get the image element
+        var img = document.getElementById('movingImage');
+
+        // Function to generate random number between min and max
+        function getRandomNumber(min, max) {
+            return Math.random() * (max - min) + min;
+        }
+
+        // Function to move the image randomly
+        function moveImage() {
+            // Get window width and height
+            var windowWidth = window.innerWidth;
+            var windowHeight = window.innerHeight;
+
+            // Set new random position for the image
+            var newX = getRandomNumber(0, windowWidth - img.width);
+            var newY = getRandomNumber(0, windowHeight - img.height);
+
+            // Apply new position to the image
+            img.style.left = newX + 'px';
+            img.style.top = newY + 'px';
+        }
+
+        // Call moveImage function initially and then at intervals
+        moveImage(); // Initial position
+        setInterval(moveImage, 3000); // Move every 3 seconds
+    </script>
+</body>
+</html>
