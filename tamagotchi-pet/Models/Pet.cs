@@ -24,6 +24,12 @@ namespace tamagotchi_pet.Models
         public double Water { get; set; }
 
         [Required]
+        public double Food { get; set; }
+
+        [Required]
+        public double Stamina { get; set; }
+
+        [Required]
         public double Health { get; set; }
 
         [Required]

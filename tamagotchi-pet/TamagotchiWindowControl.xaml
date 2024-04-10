@@ -42,31 +42,37 @@
             <TextBlock Name="petNameLabel" Text="Pet Name" Canvas.Left="62" Canvas.Top="129"
                TextAlignment="Center" Width="70" />
             <Image Name="petImage" Source="pack://application:,,,/tamagotchi-pet;component/Resources/pet.png"
-           Width="30" Height="30" Canvas.Left="82" Canvas.Top="56"
-           HorizontalAlignment="Center" VerticalAlignment="Top" />
+                Width="30" Height="30" Canvas.Left="82" Canvas.Top="56"
+                HorizontalAlignment="Center" VerticalAlignment="Top" />
             <Image Name="waterImage" Source="pack://application:,,,/tamagotchi-pet;component/Resources/water.png"
-Width="20" Height="20" Canvas.Left="142" Canvas.Top="90"
-HorizontalAlignment="Left" VerticalAlignment="Center" />
+                Width="20" Height="20" Canvas.Left="142" Canvas.Top="90"
+                HorizontalAlignment="Left" VerticalAlignment="Center" />
+            <Image Name="foodImage" Source="pack://application:,,,/tamagotchi-pet;component/Resources/food2.png"
+                Width="20" Height="20" Canvas.Left="102" Canvas.Top="90"
+                HorizontalAlignment="Left" VerticalAlignment="Top" />
+            <Image Name="staminaImage" Source="pack://application:,,,/tamagotchi-pet;component/Resources/stamina.png"
+                Width="20" Height="20" Canvas.Left="122" Canvas.Top="90"
+                HorizontalAlignment="Left" VerticalAlignment="Center" RenderTransformOrigin="-1.8,2.733" />
         </Canvas>
 
         <Canvas>
+            <Button Content="" Name="BtnFood" Style="{StaticResource RoundButton}"
+                Canvas.Left="31" Canvas.Top="151" Height="33" Width="33" HorizontalAlignment="Left" VerticalAlignment="Top" Click="BtnFood_Click" />
+
+            <Button Content="" Name="BtnStamina" Style="{StaticResource RoundButton}"
+                Canvas.Left="84" Canvas.Top="168" Height="32" Width="32" HorizontalAlignment="Center" VerticalAlignment="Center" Click="BtnStamina_Click" />
+
             <Button Content="" Name="BtnWater" Style="{StaticResource RoundButton}"
-                    Canvas.Left="82" Canvas.Top="168" Height="33" Width="33" HorizontalAlignment="Left" VerticalAlignment="Top"  Click="BtnWater_Click" />
+                Canvas.Left="134" Canvas.Top="151" Height="33" Width="32" HorizontalAlignment="Left" VerticalAlignment="Top"  Click="BtnWater_Click" />
 
-            <Button Content="" Name="button2" Style="{StaticResource RoundButton}"
-                    Canvas.Left="31" Canvas.Top="151" Height="33" Width="33" HorizontalAlignment="Left" VerticalAlignment="Top" Click="button1_Click" />
-
-            <Button Content="" Name="button3" Style="{StaticResource RoundButton}"
-                    Canvas.Left="134" Canvas.Top="152" Height="32" Width="33" HorizontalAlignment="Left" VerticalAlignment="Top" Click="button3_Click" />
-
-            <Button Name="loginButton" Style="{StaticResource RoundButton}"
-                    Canvas.Left="38" Canvas.Top="21" Height="20" Width="20" HorizontalAlignment="Left" VerticalAlignment="Top" Click="BtnAccount_Click" RenderTransformOrigin="-1.25,-0.25">
+            <Button Name="loginButton" BorderBrush="Transparent" BorderThickness="0"
+                Canvas.Left="38" Canvas.Top="21" Height="20" Width="20" HorizontalAlignment="Left" VerticalAlignment="Top" Click="BtnAccount_Click" RenderTransformOrigin="-1.25,-0.25">
                 <Button.Background>
                     <ImageBrush ImageSource="pack://application:,,,/tamagotchi-pet;component/Resources/account.png" />
                 </Button.Background>
             </Button>
-            <Button Name="settingsButton" Style="{StaticResource RoundButton}"
-         Canvas.Left="140" Canvas.Top="21" Height="20" Width="20" HorizontalAlignment="Left" VerticalAlignment="Top" Click="BtnSettings" RenderTransformOrigin="-1.25,-0.25">
+            <Button Name="settingsButton" BorderBrush="Transparent" BorderThickness="0"
+                Canvas.Left="140" Canvas.Top="21" Height="20" Width="20" HorizontalAlignment="Left" VerticalAlignment="Top" Click="BtnSettings" RenderTransformOrigin="-1.25,-0.25">
                 <Button.Background>
                     <ImageBrush ImageSource="pack://application:,,,/tamagotchi-pet;component/Resources/settings.png" />
                 </Button.Background>

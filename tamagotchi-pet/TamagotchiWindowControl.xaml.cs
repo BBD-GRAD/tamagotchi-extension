@@ -1,14 +1,6 @@
 ﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
-using System.IO;
-using System.Net;
-using System.Net.Sockets;
-using System.Security.Cryptography;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media.Animation;
@@ -18,42 +10,56 @@ using tamagotchi_pet.Services;
 using tamagotchi_pet.Utils;
 using tamagotchi_pet.Models;
 using Serilog;
-using Newtonsoft.Json.Linq;
 using System.Windows.Media;
 
 namespace tamagotchi_pet
 {
-    /// <summary>
-    /// Interaction logic for TamagotchiWindowControl.
-    /// </summary>
     public partial class TamagotchiWindowControl : UserControl
     {
         private DispatcherTimer gameTimer;
+        private System.Timers.Timer refreshTimer;
+
+        private Dictionary<string, string> _tokens = new Dictionary<string, string>();
+        private GameService _gameService;
+
+        private Color inactiveColor = Colors.LightGray;
+        private Color waterActiveColor = Colors.Blue;
+        private Color foodActiveColor = Colors.Green;
+        private Color staminaActiveColor = Colors.Yellow;
+
+        //Time in ms
+        private const double REFRESH_RATE = 500;
+
+        private double simulationSpeed = 30;
+
+        private const int TIME_TO_DIE = 900_000;//15min
+        private const int GRACE_PERIOD_TIME = 600_000; //10min
+
+        private const int FOOD_REFILL_TIME = 900_000; //15min
+        private const int FOOD_DEPLETE_TIME = 10_800_000; //3hr
+
+        private const int STAMINA_REFILL_TIME = 600_000; //10min
+        private const int STAMINA_DEPLETE_TIME = 3_600_000; //1hr
+
+        private const int WATER_REFILL_TIME = 300_000; //5min
+        private const int WATER_DEPLETE_TIME = 3_600_000; //1hr
+
+        private double _timeWithoutFood = 0;
+        private double _timeWithoutRest = 0;
+        private double _timeWithoutWater = 0;
+
+        private bool _dyingFromHunger = false;
+        private bool _dyingFromExhaustion = false;
+        private bool _dyingFromThirst = false;
+
+        private bool _isEating = false;
+        private bool _isResting = false;
+        private bool _isDrinking = false;
+        private bool _isDying = false;
+
         private Pet _pet = null;
         private double targetX, targetY;
-        private Dictionary<string, string> _tokens;
-        private double refreshRate = 1_000; // ms
-        private double simulationSpeed = 60;
 
-        private bool needWater = false;
-        private double _waterElapsedTime = 0;
-        private double _waterTimeOver = 0;
-        private double _gracePeriod = 600_000;
-        private double timeToDie = 800_000;
-
-        private double waterRefillTime = 300_000;
-
-        private double _waterNeedTime = 3_600_000;
-
-        private bool IsEating = false;
-        private bool dyingFromThirst = false;
-
-        private bool IsDrinking = false;
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="TamagotchiWindowControl"/> class.
-        /// </summary>
-        ///
         static TamagotchiWindowControl()
         {
             Log.Logger = new LoggerConfiguration()
@@ -74,196 +80,191 @@ namespace tamagotchi_pet
         {
             gameTimer = new DispatcherTimer
             {
-                Interval = TimeSpan.FromMilliseconds(refreshRate)
+                Interval = TimeSpan.FromMilliseconds(REFRESH_RATE)
             };
             gameTimer.Tick += GameLoop;
             gameTimer.Start();
 
             targetX = Canvas.GetLeft(petImage);
             targetY = Canvas.GetTop(petImage);
+            Logging.Logger.Debug("StartGame: Game has started");
         }
 
         private async void OnLoaded(object sender, RoutedEventArgs e)
         {
-            Dictionary<string, string> retrievedTokens = TokenStorage.RetrieveTokens();
-            if (retrievedTokens.Count == 0)
+            Dictionary<string, string> oldTokens = TokenStorage.RetrieveTokens();
+            if (oldTokens.Count == 0)
             {
                 Logging.Logger.Debug("OnLoaded: No token file found");
                 MessageBox.Show("No previous session tokens found please login.");
             }
             else
             {
-                Logging.Logger.Debug("OnLoaded: Tokens retrieved successfully.");
-                _tokens = retrievedTokens;
+                Logging.Logger.Debug("OnLoaded: Old tokens retrieved successfully:\n" + JsonConvert.SerializeObject(oldTokens, Formatting.Indented));
+                _tokens = oldTokens;
+                await AuthFlow.RefreshTokensAsync(_tokens["id_token"], _tokens["refresh_token"]);
+                Dictionary<string, string> newTokens = TokenStorage.RetrieveTokens();
+                _tokens = newTokens;
+                Logging.Logger.Debug("OnLoaded: New tokens retrieved successfully:\n" + JsonConvert.SerializeObject(newTokens, Formatting.Indented));
+
                 _pet = await ApiService.GetPetAsync(_tokens["id_token"]);
                 petNameLabel.Text = _pet?.PetName;
                 //get settings
             }
+
+            //refreshTimer = new System.Timers.Timer(3500000); // (approximately 58 minutes)
+            refreshTimer = new System.Timers.Timer(60000); // (approximately 1 minutes)
+
+            refreshTimer.Elapsed += OnTimedRefresh;
+            refreshTimer.AutoReset = true;
+            refreshTimer.Enabled = true;
+
+            _gameService = new GameService(ref petImage, ref gameCanvas, ref movementArea);
+
             StartGame();
         }
 
-        private async void GameLoop(object sender, EventArgs e)
+        private async void OnTimedRefresh(Object source, System.Timers.ElapsedEventArgs e) //TODO trycatch in handlers
         {
-            double delta = refreshRate * simulationSpeed;
-            if (_pet == null)
+            try
             {
-                petImage.Visibility = Visibility.Hidden;
-
-                Logging.Logger.Debug("GameLoop: No pet found.");
-                CreatePetDialog inputDialog = new CreatePetDialog();
-                if (inputDialog.ShowDialog() == true)
+                Logging.Logger.Debug("OnTimedRefresh: Refresh token timer elapsed.");
+                var refreshed = await AuthFlow.RefreshTokensAsync(_tokens["id_token"], _tokens["refresh_token"]);
+                if (refreshed)
                 {
-                    _pet = await ApiService.CreatePetAsync(_tokens["id_token"], inputDialog.ResponseText);
-                    petNameLabel.Text = _pet?.PetName;
-                    Logging.Logger.Debug("GameLoop: Pet created: " + _pet?.PetName);
+                    Dictionary<string, string> newTokens = TokenStorage.RetrieveTokens();
+                    _tokens = newTokens;
+                    Logging.Logger.Debug("OnTimedRefresh: New tokens :\n" + JsonConvert.SerializeObject(newTokens, Formatting.Indented));
                 }
+            }
+            catch (Exception ex)
+            {
+                Logging.Logger.Debug("OnTimedRefresh: Error refreshing tokens: " + ex.Message);
+            }
+        }
+
+        private async void GameLoop(object sender, EventArgs e) //TODO TRY CATCH NB!
+        {
+            double delta = REFRESH_RATE * simulationSpeed;
+            if (_tokens.Count > 0) //check logged in
+            {
+                if (_pet == null)
+                {
+                    petImage.Visibility = Visibility.Hidden;
+                    foodImage.Visibility = Visibility.Hidden;
+                    staminaImage.Visibility = Visibility.Hidden;
+                    waterImage.Visibility = Visibility.Hidden;
+
+                    Logging.Logger.Debug("GameLoop: No pet found.");
+                    CreatePetDialog inputDialog = new CreatePetDialog();
+                    if (inputDialog.ShowDialog() == true)
+                    {
+                        _pet = await ApiService.CreatePetAsync(_tokens["id_token"], inputDialog.ResponseText);
+                        petNameLabel.Text = _pet?.PetName;
+                        Logging.Logger.Debug("GameLoop: Pet created: " + _pet?.PetName);
+                    }
+                }
+                else
+                {
+                    _gameService.AnimatePetToPosition();
+                    petImage.Visibility = Visibility.Visible;
+                    //var petStatus = new
+                    //{
+                    //    Food = new
+                    //    {
+                    //        Level = _pet.Food.ToString("F2"),
+                    //        IsActive = _isEating,
+                    //        DyingFrom = _dyingFromHunger
+                    //    },
+                    //    Stamina = new
+                    //    {
+                    //        Level = _pet.Stamina.ToString("F2"),
+                    //        IsActive = _isResting,
+                    //        DyingFrom = _dyingFromExhaustion
+                    //    },
+                    //    Water = new
+                    //    {
+                    //        Level = _pet.Water.ToString("F2"),
+                    //        IsActive = _isDrinking,
+                    //        DyingFrom = _dyingFromThirst
+                    //    },
+                    //};
+                    //Logging.Logger.Debug($"GameLoop: PET {_pet?.PetName}:\n" + JsonConvert.SerializeObject(petStatus));
+
+                    _pet.XP += (delta) / 1000;
+                    _pet.Food = _gameService.UpdateResource(_pet.Food, FOOD_DEPLETE_TIME, FOOD_REFILL_TIME, _isEating, BtnFood, foodActiveColor, inactiveColor, delta);
+                    _pet.Stamina = _gameService.UpdateResource(_pet.Stamina, STAMINA_DEPLETE_TIME, STAMINA_REFILL_TIME, _isResting, BtnStamina, staminaActiveColor, inactiveColor, delta);
+                    _pet.Water = _gameService.UpdateResource(_pet.Water, WATER_DEPLETE_TIME, WATER_REFILL_TIME, _isDrinking, BtnWater, waterActiveColor, inactiveColor, delta);
+
+                    _gameService.UpdatePetState(_pet.Food, ref _timeWithoutFood, GRACE_PERIOD_TIME, ref _dyingFromHunger, ref _isEating, ref foodImage, delta);
+                    _gameService.UpdatePetState(_pet.Stamina, ref _timeWithoutRest, GRACE_PERIOD_TIME, ref _dyingFromExhaustion, ref _isResting, ref staminaImage, delta);
+                    _gameService.UpdatePetState(_pet.Water, ref _timeWithoutWater, GRACE_PERIOD_TIME, ref _dyingFromThirst, ref _isDrinking, ref waterImage, delta);
+
+                    _isDying = (_dyingFromHunger || _dyingFromExhaustion || _dyingFromThirst);
+                    if (_isDying)
+                    {
+                        _pet.Health = Math.Max(0, _pet.Health - 100 / (TIME_TO_DIE / delta));
+                    }
+                }
+            }
+        }
+
+        private void BtnFood_Click(object sender, RoutedEventArgs e)
+        {
+            if (_isEating)
+            {
+                _isEating = false;
+                BtnFood.Background = new SolidColorBrush(foodActiveColor);
             }
             else
             {
-                Logging.Logger.Debug($"GameLoop: PET {_pet?.PetName} Water (dyingfrom:{dyingFromThirst}): {_pet.Water:F2} Health: {_pet.Health:F2}");
-
-                petImage.Visibility = Visibility.Visible;
-                GenerateNewTargetPosition();
-                AnimatePetToPosition(targetX, targetY);
-
-                _pet.XP += (delta) / 1000; //bigint?
-
-                if (!IsDrinking)
-                {
-                    _pet.Water = Math.Max(0, _pet.Water - 100 / (_waterNeedTime / (delta)));
-                    BtnWater.Background = new SolidColorBrush(Colors.Gray);
-                }
-                else
-                {
-                    _pet.Water = Math.Min(100, _pet.Water + 100 / (waterRefillTime / (delta)));
-                    BtnWater.Background = new SolidColorBrush(Colors.Blue);
-                }
-
-                if (_pet.Water == 0)
-                {
-                    if (!dyingFromThirst)
-                    {
-                        _waterTimeOver += delta;
-                    }
-                    if (_waterTimeOver >= _gracePeriod)
-                    {
-                        dyingFromThirst = true;
-                        _waterTimeOver = 0;
-                    }
-                    waterImage.Visibility = Visibility.Visible;
-                }
-                else if (_pet.Water == 100)
-                {
-                    IsDrinking = false;
-                }
-                else
-                {
-                    waterImage.Visibility = Visibility.Hidden;
-                    dyingFromThirst = false;
-                }
-
-                if (dyingFromThirst)
-                {
-                    _pet.Health = Math.Max(0, _pet.Health - 100 / (timeToDie / (refreshRate * simulationSpeed)));
-                }
+                _isEating = true;
+                BtnFood.Background = new SolidColorBrush(inactiveColor);
             }
         }
 
-        //private bool needWater = false;
-        //private double _waterElapsedTime = 0;
-        //private double _waterTimeOver = 0;
-        //private double _gracePeriod = 300_000;
-        //private double _waterNeedTime = 3_600_000;
-
-        private void GenerateNewTargetPosition() //TODO move all this to own class
+        private void BtnStamina_Click(object sender, RoutedEventArgs e)
         {
-            double minX = movementArea.Margin.Left;
-            double minY = movementArea.Margin.Top;
-            double maxX = gameCanvas.ActualWidth - movementArea.Margin.Right - petImage.Width;
-            double maxY = gameCanvas.ActualHeight - movementArea.Margin.Bottom - petImage.Height;
-
-            Random rand = new Random();
-            targetX = rand.Next((int)minX, (int)maxX);
-            targetY = rand.Next((int)minY, (int)maxY);
-        }
-
-        private void AnimatePetToPosition(double newX, double newY)
-        {
-            double currentX = Canvas.GetLeft(petImage);
-            double currentY = Canvas.GetTop(petImage);
-
-            double distance = Math.Sqrt(Math.Pow(newX - currentX, 2) + Math.Pow(newY - currentY, 2));
-
-            double speed = 10;
-
-            double timeInSeconds = distance / speed;
-            Duration animationDuration = new Duration(TimeSpan.FromSeconds(timeInSeconds));
-
-            var xAnimation = new DoubleAnimation()
+            if (_isResting)
             {
-                From = currentX,
-                To = newX,
-                Duration = animationDuration,
-                EasingFunction = new QuadraticEase() { EasingMode = EasingMode.EaseInOut }
-            };
-            var yAnimation = new DoubleAnimation()
+                BtnStamina.Background = new SolidColorBrush(staminaActiveColor);
+                _isResting = false;
+            }
+            else
             {
-                From = currentY,
-                To = newY,
-                Duration = animationDuration,
-                EasingFunction = new QuadraticEase() { EasingMode = EasingMode.EaseInOut }
-            };
-
-            petImage.BeginAnimation(Canvas.LeftProperty, xAnimation);
-            petImage.BeginAnimation(Canvas.TopProperty, yAnimation);
-        }
-
-        private void UpdateTamagotchiState()
-        {
-            // Update game states like hunger, happiness etc.
-        }
-
-        private void CheckGameConditions()
-        {
-            // Check conditions and update game state accordingly
-        }
-
-        private void button1_Click(object sender, RoutedEventArgs e)
-        {
-            MessageBox.Show(
-                string.Format(System.Globalization.CultureInfo.CurrentUICulture, "Button 1 Invoked '{0}'", this.ToString()),
-                "TamagotchiWindow");
+                BtnStamina.Background = new SolidColorBrush(inactiveColor);
+                _isResting = true;
+            }
         }
 
         private void BtnWater_Click(object sender, RoutedEventArgs e)
         {
-            if (IsDrinking)
+            if (_isDrinking)
             {
-                IsDrinking = false;
-                BtnWater.Background = new SolidColorBrush(Colors.Gray);
+                BtnWater.Background = new SolidColorBrush(waterActiveColor);
+                _isDrinking = false;
             }
             else
             {
-                IsDrinking = true;
-                BtnWater.Background = new SolidColorBrush(Colors.Blue);
+                BtnWater.Background = new SolidColorBrush(inactiveColor);
+                _isDrinking = true;
             }
-        }
-
-        private void button3_Click(object sender, RoutedEventArgs e)
-        {
-            MessageBox.Show(
-                string.Format(System.Globalization.CultureInfo.CurrentUICulture, "Button 3 Invoked '{0}'", this.ToString()),
-                "TamagotchiWindow");
         }
 
         private async void BtnAccount_Click(object sender, RoutedEventArgs e)
         {
-            await AuthFlow.StartAuth();
-
-            Dictionary<string, string> retrievedTokens = TokenStorage.RetrieveTokens();
-            _tokens = retrievedTokens;
-            _pet = await ApiService.GetPetAsync(_tokens["id_token"]);
-            petNameLabel.Text = _pet?.PetName;
+            try
+            {
+                await AuthFlow.StartAuth();
+                Dictionary<string, string> retrievedTokens = TokenStorage.RetrieveTokens();
+                _tokens = retrievedTokens;
+                _pet = await ApiService.GetPetAsync(_tokens["id_token"]);
+                petNameLabel.Text = _pet?.PetName;
+            }
+            catch (Exception ex)
+            {
+                Logging.Logger.Debug("BtnAccount_Click: Error logging in: " + ex.Message);
+            }
         }
 
         private void BtnSettings(object sender, RoutedEventArgs e)
