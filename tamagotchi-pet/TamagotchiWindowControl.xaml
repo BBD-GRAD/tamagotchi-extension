@@ -37,6 +37,14 @@
         <Grid.Background>
             <ImageBrush ImageSource="pack://application:,,,/tamagotchi-pet;component/Resources/background.png" />
         </Grid.Background>
+        <Canvas Name="gameCanvas">
+            <Rectangle x:Name="movementArea" Stroke="Black" StrokeThickness="2" Margin="31,16,34,87" />
+            <TextBlock Name="petNameLabel" Text="Pet Name" Canvas.Left="62" Canvas.Top="129"
+               TextAlignment="Center" Width="70" />
+            <Image Name="petImage" Source="pack://application:,,,/tamagotchi-pet;component/Resources/pet.png"
+           Width="30" Height="30" Canvas.Left="82" Canvas.Top="56"
+           HorizontalAlignment="Center" VerticalAlignment="Top" />
+        </Canvas>
 
         <Canvas>
             <Button Content="" Name="button1" Style="{StaticResource RoundButton}"
@@ -47,6 +55,19 @@
 
             <Button Content="" Name="button3" Style="{StaticResource RoundButton}"
                     Canvas.Left="134" Canvas.Top="152" Height="32" Width="33" HorizontalAlignment="Left" VerticalAlignment="Top" Click="button3_Click" />
+
+            <Button Name="loginButton" Style="{StaticResource RoundButton}"
+                    Canvas.Left="38" Canvas.Top="21" Height="20" Width="20" HorizontalAlignment="Left" VerticalAlignment="Top" Click="BtnAccount_Click" RenderTransformOrigin="-1.25,-0.25">
+                <Button.Background>
+                    <ImageBrush ImageSource="pack://application:,,,/tamagotchi-pet;component/Resources/account.png" />
+                </Button.Background>
+            </Button>
+            <Button Name="settingsButton" Style="{StaticResource RoundButton}"
+         Canvas.Left="140" Canvas.Top="21" Height="20" Width="20" HorizontalAlignment="Left" VerticalAlignment="Top" Click="BtnSettings" RenderTransformOrigin="-1.25,-0.25">
+                <Button.Background>
+                    <ImageBrush ImageSource="pack://application:,,,/tamagotchi-pet;component/Resources/settings.png" />
+                </Button.Background>
+            </Button>
         </Canvas>
     </Grid>
 </UserControl>
