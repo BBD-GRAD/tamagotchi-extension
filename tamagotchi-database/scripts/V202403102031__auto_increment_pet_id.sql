@@ -1,0 +1,2 @@
+ALTER TABLE dbo.Pets
+    ALTER COLUMN pet_id INT IDENTITY(1,1);
