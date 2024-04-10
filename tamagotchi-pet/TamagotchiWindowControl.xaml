@@ -52,7 +52,7 @@
                 HorizontalAlignment="Left" VerticalAlignment="Top" />
             <Image Name="staminaImage" Source="pack://application:,,,/tamagotchi-pet;component/Resources/stamina.png"
                 Width="20" Height="20" Canvas.Left="122" Canvas.Top="90"
-                HorizontalAlignment="Left" VerticalAlignment="Center" RenderTransformOrigin="-1.8,2.733" />
+                HorizontalAlignment="Left" VerticalAlignment="Center" />
         </Canvas>
 
         <Canvas>
@@ -65,14 +65,21 @@
             <Button Content="" Name="BtnWater" Style="{StaticResource RoundButton}"
                 Canvas.Left="134" Canvas.Top="151" Height="33" Width="32" HorizontalAlignment="Left" VerticalAlignment="Top"  Click="BtnWater_Click" />
 
-            <Button Name="loginButton" BorderBrush="Transparent" BorderThickness="0"
-                Canvas.Left="38" Canvas.Top="21" Height="20" Width="20" HorizontalAlignment="Left" VerticalAlignment="Top" Click="BtnAccount_Click" RenderTransformOrigin="-1.25,-0.25">
+            <Button Name="loginButton" BorderThickness="0" Style="{StaticResource RoundButton}"
+                Canvas.Left="38" Canvas.Top="21" Height="20" Width="20" HorizontalAlignment="Left" VerticalAlignment="Top" Click="BtnAccount_Click">
                 <Button.Background>
                     <ImageBrush ImageSource="pack://application:,,,/tamagotchi-pet;component/Resources/account.png" />
                 </Button.Background>
             </Button>
-            <Button Name="settingsButton" BorderBrush="Transparent" BorderThickness="0"
-                Canvas.Left="140" Canvas.Top="21" Height="20" Width="20" HorizontalAlignment="Left" VerticalAlignment="Top" Click="BtnSettings" RenderTransformOrigin="-1.25,-0.25">
+
+            <Button Name="restartButton"  BorderThickness="0" Style="{StaticResource RoundButton}"
+                Canvas.Left="85" Canvas.Top="48" Height="30" Width="30" HorizontalAlignment="Left" VerticalAlignment="Top" Click="BtnRestart_Click">
+                <Button.Background>
+                    <ImageBrush ImageSource="pack://application:,,,/tamagotchi-pet;component/Resources/replay.png" />
+                </Button.Background>
+            </Button>
+            <Button Name="settingsButton"  BorderThickness="0" Style="{StaticResource RoundButton}"
+                Canvas.Left="140" Canvas.Top="21" Height="20" Width="20" HorizontalAlignment="Left" VerticalAlignment="Top" Click="BtnSettings">
                 <Button.Background>
                     <ImageBrush ImageSource="pack://application:,,,/tamagotchi-pet;component/Resources/settings.png" />
                 </Button.Background>

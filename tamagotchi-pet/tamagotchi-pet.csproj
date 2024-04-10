@@ -122,8 +122,10 @@
     <Resource Include="Resources\account.png" />
     <Resource Include="Resources\settings.png" />
     <Resource Include="Resources\pet.png" />
+    <Resource Include="Resources\bar.png" />
     <Content Include="Resources\food2.png" />
     <Resource Include="Resources\stamina.png" />
+    <Resource Include="Resources\replay.png" />
     <Content Include="Resources\TamagotchiWindowCommand.png" />
     <VSCTCompile Include="tamagotchi_petPackage.vsct">
       <ResourceName>Menus.ctmenu</ResourceName>

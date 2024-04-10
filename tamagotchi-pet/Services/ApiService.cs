@@ -1,14 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net.Http.Headers;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using tamagotchi_pet.Models;
-using System.Diagnostics;
-using Microsoft.Build.Framework;
 using tamagotchi_pet.Utils;
 
 namespace tamagotchi_pet.Services
@@ -63,6 +59,29 @@ namespace tamagotchi_pet.Services
                 Logging.Logger.Debug($"Network error: {e.Message}");
             }
             return null;
+        }
+
+        public static async Task<bool> DeletePetAsync(string idToken)
+        {
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", idToken);
+            try
+            {
+                HttpResponseMessage response = await client.DeleteAsync($"api/Pet");
+                if (response.IsSuccessStatusCode)
+                {
+                    Logging.Logger.Debug($"Pet deleted successfully");
+                    return true;
+                }
+                else
+                {
+                    Logging.Logger.Debug($"Failed to delete pet. Status code: {response.StatusCode}");
+                }
+            }
+            catch (HttpRequestException e)
+            {
+                Logging.Logger.Debug($"Network error during pet deletion: {e.Message}");
+            }
+            return false;
         }
 
         public static async Task<Pet> CreatePetAsync(string idToken, string petName)

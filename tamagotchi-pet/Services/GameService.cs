@@ -66,18 +66,17 @@ namespace tamagotchi_pet.Services
             petImage.BeginAnimation(Canvas.TopProperty, yAnimation);
         }
 
-        public double UpdateResource(double resource, double depletionTime, double refillTime, bool isActive, Button resourceButton, Color activeColor, Color inactiveColor, double delta)
+        public double UpdateResource(double resource, double depletionTime, double refillTime, bool isActive, Button resourceButton, Color activeColor, Color inactiveColor, double delta, double resourceMax = 100)
         {
-            const double MAX_RESOURCE = 100;
             if (!isActive)
             {
                 resourceButton.Background = new SolidColorBrush(inactiveColor);
-                return Math.Max(0, resource - MAX_RESOURCE / (depletionTime / delta));
+                return Math.Max(0, resource - resourceMax / (depletionTime / delta));
             }
             else
             {
                 resourceButton.Background = new SolidColorBrush(activeColor);
-                return Math.Min(MAX_RESOURCE, resource + MAX_RESOURCE / (refillTime / delta));
+                return Math.Min(resourceMax, resource + resourceMax / (refillTime / delta));
             }
         }
 
