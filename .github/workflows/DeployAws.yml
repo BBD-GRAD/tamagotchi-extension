@@ -4,7 +4,6 @@ on:
   push:
     branches:
     - dev
-    - feature/TAM-4/CI-CD
     paths:
     - 'TamagotchiAPI/**'
   workflow_dispatch:
