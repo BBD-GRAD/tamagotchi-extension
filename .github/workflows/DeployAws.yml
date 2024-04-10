@@ -3,7 +3,7 @@ name: Deploy Tamagotchi Extension (Backend)
 on:
   push:
     branches:
-    - feature/dev
+    - dev
     paths:
     - 'TamagotchiAPI/**'
   workflow_dispatch:
