@@ -3,6 +3,7 @@ name: Deploy New App Version (Backend)
 on:
   push:
     branches:
+    - dev
     - feature/TAM-4/CI-CD
     paths:
     - 'TamagotchiAPI/**'
