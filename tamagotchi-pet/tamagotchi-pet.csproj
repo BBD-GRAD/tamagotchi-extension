@@ -124,6 +124,7 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
+    <Resource Include="Resources\waterAlt.png" />
     <Resource Include="Resources\water.png" />
     <Resource Include="Resources\account.png" />
     <Resource Include="Resources\settings.png" />
@@ -133,9 +134,11 @@
     <Resource Include="Resources\backgroundBlue.png" />
     <Resource Include="Resources\backgroundGreen.png" />
     <Resource Include="Resources\backgroundRed.png" />
-    <Content Include="Resources\food2.png" />
+    <Resource Include="Resources\food.png" />
     <Resource Include="Resources\stamina.png" />
     <Resource Include="Resources\replay.png" />
+    <Resource Include="Resources\foodAlt.png" />
+    <Resource Include="Resources\staminaAlt.png" />
     <Content Include="Resources\TamagotchiWindowCommand.png" />
     <VSCTCompile Include="tamagotchi_petPackage.vsct">
       <ResourceName>Menus.ctmenu</ResourceName>

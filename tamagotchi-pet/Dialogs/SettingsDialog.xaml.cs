@@ -11,9 +11,23 @@ namespace tamagotchi_pet.Dialogs
         public Themes SelectedTheme { get; private set; }
         public double SimulationSpeed { get; private set; }
 
+        public static double LastSliderValue { get; set; } = 1;
+        public static Themes LastSelectedTheme { get; set; } = Themes.Red;
+
         public SettingsDialog()
         {
             InitializeComponent();
+
+            SpeedSlider.Value = LastSliderValue;
+
+            foreach (ComboBoxItem item in ColorPicker.Items)
+            {
+                if (item.Tag.ToString() == LastSelectedTheme.ToString())
+                {
+                    ColorPicker.SelectedItem = item;
+                    break;
+                }
+            }
         }
 
         private void SubmitButton_Click(object sender, RoutedEventArgs e)
@@ -21,8 +35,10 @@ namespace tamagotchi_pet.Dialogs
             if (ColorPicker.SelectedItem is ComboBoxItem selectedColorItem)
             {
                 SelectedTheme = MapColorToEnum(selectedColorItem.Tag.ToString());
+                LastSelectedTheme = SelectedTheme;
             }
             SimulationSpeed = SpeedSlider.Value;
+            LastSliderValue = SpeedSlider.Value;
             this.DialogResult = true;
             this.Close();
         }
