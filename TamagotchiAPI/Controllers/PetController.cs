@@ -7,7 +7,7 @@ using TamagotchiAPI.DTOs;
 
 namespace TamagotchiAPI.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/[controller]")] 
     [ApiController]
     [Authorize]
     public class PetController : ControllerBase
