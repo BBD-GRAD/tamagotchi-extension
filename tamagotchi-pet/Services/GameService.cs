@@ -11,17 +11,13 @@ namespace tamagotchi_pet.Services
     {
         private readonly Image petImage;
         private readonly Canvas gameCanvas;
-        private readonly Canvas petCanvas;
         private readonly Rectangle movementArea;
-        private readonly TranslateTransform petCanvasTranslateTransform;
 
-        public GameService(ref Image petImage, ref Canvas gameCanvas, ref TranslateTransform petCanvasTranslateTransform, ref Rectangle movementArea)
+        public GameService(ref Image petImage, ref Canvas gameCanvas, ref Rectangle movementArea)
         {
             this.petImage = petImage;
-            this.petCanvas = gameCanvas;
             this.gameCanvas = gameCanvas;
             this.movementArea = movementArea;
-            this.petCanvasTranslateTransform = petCanvasTranslateTransform;
         }
 
         private (double x, double y) GenerateNewTargetPosition()
@@ -66,8 +62,8 @@ namespace tamagotchi_pet.Services
                 EasingFunction = new QuadraticEase() { EasingMode = EasingMode.EaseInOut }
             };
 
-            petCanvasTranslateTransform.BeginAnimation(TranslateTransform.XProperty, xAnimation);
-            petCanvasTranslateTransform.BeginAnimation(TranslateTransform.YProperty, yAnimation);
+            petImage.BeginAnimation(Canvas.LeftProperty, xAnimation);
+            petImage.BeginAnimation(Canvas.TopProperty, yAnimation);
         }
 
         public double UpdateResource(double resource, double depletionTime, double refillTime, bool isActive, Button resourceButton, Color activeColor, Color inactiveColor, double delta, double resourceMax = 100)
@@ -84,7 +80,7 @@ namespace tamagotchi_pet.Services
             }
         }
 
-        public void UpdatePetState(double resource, ref double timeWithoutResource, double gracePeriod, ref bool isDyingFromResourceDepletion, ref bool isActive, ref Image image, double delta, double resourceMax = 100)
+        public void UpdatePetState(double resource, ref double timeWithoutResource, double gracePeriod, ref bool isDyingFromResourceDepletion, ref bool isActive, double delta, double resourceMax = 100)
         {
             if (resource == 0)
             {
@@ -97,7 +93,6 @@ namespace tamagotchi_pet.Services
                     isDyingFromResourceDepletion = true;
                     timeWithoutResource = 0;
                 }
-                image.Visibility = Visibility.Visible;
             }
             else if (resource == resourceMax)
             {
@@ -105,8 +100,6 @@ namespace tamagotchi_pet.Services
             }
             else
             {
-                image.Visibility = Visibility.Hidden;
-
                 isDyingFromResourceDepletion = false;
                 timeWithoutResource = 0;
             }

@@ -30,11 +30,12 @@ namespace tamagotchi_pet
         private Color staminaActiveColor = Colors.Yellow;
 
         //Time in ms
-        private const double REFRESH_PERIOD = 1000;
+        private const double REFRESH_PERIOD = 1000; //1min
 
-        private double simulationSpeed = 60;
+        private double simulationSpeed = 1;
 
         private const int TIME_FOR_POINT = 60_000; //1min
+        private const int TIME_TO_FLASH = 1_000; //1s
 
         private const int TIME_TO_DIE = 900_000;//15min
         private const int GRACE_PERIOD_TIME = 600_000; //10min
@@ -52,6 +53,7 @@ namespace tamagotchi_pet
         private double _timeWithoutRest = 0;
         private double _timeWithoutWater = 0;
         private double _timeTillXP = 0;
+        private double _timeTillFlash = 0;
 
         private bool _dyingFromHunger = false;
         private bool _dyingFromExhaustion = false;
@@ -62,8 +64,12 @@ namespace tamagotchi_pet
         private bool _isDrinking = false;
         private bool _isDying = false;
 
+        private bool _isWaterAlt = false;
+        private bool _isFoodAlt = false;
+        private bool _isStaminaAlt = false;
+
         private Pet _pet = null;
-        private Themes _theme = Themes.Black;
+        private Themes _theme = Themes.Red;
 
         static TamagotchiWindowControl()
         {
@@ -79,13 +85,15 @@ namespace tamagotchi_pet
             petImage.Visibility = Visibility.Hidden;
             restartButton.Visibility = Visibility.Visible;
             petImage.Visibility = Visibility.Hidden;
-            foodImage.Visibility = Visibility.Hidden;
-            staminaImage.Visibility = Visibility.Hidden;
-            waterImage.Visibility = Visibility.Hidden;
+
+            hpBar.Value = 0;
+            staminaLabel.Text = 0.ToString();
+            waterLabel.Text = 0.ToString();
+            foodLabel.Text = 0.ToString();
             petNameLabel.Text = string.Empty;
             xpLabel.Text = string.Empty;
 
-            Loaded += OnLoaded; //user settigns TODO
+            Loaded += OnLoaded;
         }
 
         private void StartGame()
@@ -120,7 +128,7 @@ namespace tamagotchi_pet
                     Logging.Logger.Debug("OnLoaded: New tokens retrieved successfully:\n" + JsonConvert.SerializeObject(newTokens, Formatting.Indented));
 
                     _pet = await ApiService.GetPetAsync(_tokens["id_token"]);
-                    //_theme = (Themes)Enum.ToObject(typeof(Themes), await ApiService.GetThemeAsync(_tokens["id_token"])); TODO
+                    //_theme = (Themes)Enum.ToObject(typeof(Themes), await ApiService.GetThemeAsync(_tokens["id_token"])); TODO change dropdown value
                 }
 
                 refreshTimer = new System.Timers.Timer(3500000); //58min
@@ -128,13 +136,75 @@ namespace tamagotchi_pet
                 refreshTimer.AutoReset = true;
                 refreshTimer.Enabled = true;
 
-                _gameService = new GameService(ref petImage, ref gameCanvas, ref petCanvasTranslateTransform, ref movementArea);
+                _gameService = new GameService(ref petImage, ref gameCanvas, ref movementArea);
                 SetTheme();
                 StartGame();
             }
             catch (Exception ex)
             {
                 Logging.Logger.Debug("OnLoaded: Error occured: " + ex.Message);
+            }
+        }
+
+        private void FlashTime(double delta)
+        {
+            _timeTillFlash += delta;
+            if (_timeTillFlash >= TIME_TO_FLASH)
+            {
+                if (_pet.Water == 0)
+                {
+                    if (_isWaterAlt)
+                    {
+                        waterImage.Source = new BitmapImage(new Uri("pack://application:,,,/tamagotchi-pet;component/Resources/water.png"));
+                    }
+                    else
+                    {
+                        waterImage.Source = new BitmapImage(new Uri("pack://application:,,,/tamagotchi-pet;component/Resources/waterAlt.png"));
+                    }
+                    _isWaterAlt = !_isWaterAlt;
+                }
+                else
+                {
+                    _isWaterAlt = false;
+                    waterImage.Source = new BitmapImage(new Uri("pack://application:,,,/tamagotchi-pet;component/Resources/water.png"));
+                }
+
+                if (_pet.Food == 0)
+                {
+                    if (_isFoodAlt)
+                    {
+                        foodImage.Source = new BitmapImage(new Uri("pack://application:,,,/tamagotchi-pet;component/Resources/food.png"));
+                    }
+                    else
+                    {
+                        foodImage.Source = new BitmapImage(new Uri("pack://application:,,,/tamagotchi-pet;component/Resources/foodAlt.png"));
+                    }
+                    _isFoodAlt = !_isFoodAlt;
+                }
+                else
+                {
+                    foodImage.Source = new BitmapImage(new Uri("pack://application:,,,/tamagotchi-pet;component/Resources/food.png"));
+                    _isFoodAlt = false;
+                }
+
+                if (_pet.Stamina == 0)
+                {
+                    if (_isStaminaAlt)
+                    {
+                        staminaImage.Source = new BitmapImage(new Uri("pack://application:,,,/tamagotchi-pet;component/Resources/stamina.png"));
+                    }
+                    else
+                    {
+                        staminaImage.Source = new BitmapImage(new Uri("pack://application:,,,/tamagotchi-pet;component/Resources/staminaAlt.png"));
+                    }
+                    _isStaminaAlt = !_isStaminaAlt;
+                }
+                else
+                {
+                    staminaImage.Source = new BitmapImage(new Uri("pack://application:,,,/tamagotchi-pet;component/Resources/stamina.png"));
+                    _isStaminaAlt = false;
+                }
+                _timeTillFlash = 0;
             }
         }
 
@@ -191,96 +261,113 @@ namespace tamagotchi_pet
             }
         }
 
-        private async void GameLoop(object sender, EventArgs e) //TODO TRY CATCH NB!
+        private async void GameLoop(object sender, EventArgs e)
         {
-            double delta = REFRESH_PERIOD * simulationSpeed;
-            if (_tokens.Count > 0) //check logged in
+            try
             {
-                if (_pet == null)
+                double delta = REFRESH_PERIOD * simulationSpeed;
+                if (_tokens.Count > 0)
                 {
-                    restartButton.Visibility = Visibility.Visible;
-                    petImage.Visibility = Visibility.Hidden;
-                    foodImage.Visibility = Visibility.Hidden;
-                    staminaImage.Visibility = Visibility.Hidden;
-                    waterImage.Visibility = Visibility.Hidden;
-                    petNameLabel.Text = string.Empty;
-                    xpLabel.Text = "You have no pet :(";
-                }
-                else
-                {
-                    _gameService.AnimatePetToPosition();
-                    petNameLabel.Text = _pet.PetName;
-                    xpLabel.Text = "XP: " + _pet.XP.ToString();
-
-                    petImage.Visibility = Visibility.Visible;
-                    restartButton.Visibility = Visibility.Hidden;
-
-                    var petStatus = new
+                    if (_pet == null)
                     {
-                        _pet.XP,
-                        Health = _pet.Health.ToString("F2"),
-                        Food = new
-                        {
-                            Level = _pet.Food.ToString("F2"),
-                            IsActive = _isEating,
-                            DyingFrom = _dyingFromHunger
-                        },
-                        Stamina = new
-                        {
-                            Level = _pet.Stamina.ToString("F2"),
-                            IsActive = _isResting,
-                            DyingFrom = _dyingFromExhaustion
-                        },
-                        Water = new
-                        {
-                            Level = _pet.Water.ToString("F2"),
-                            IsActive = _isDrinking,
-                            DyingFrom = _dyingFromThirst
-                        },
-                    };
-                    Logging.Logger.Debug($"GameLoop: PET {_pet?.PetName}:\n" + JsonConvert.SerializeObject(petStatus));
-
-                    _pet.Food = _gameService.UpdateResource(_pet.Food, FOOD_DEPLETE_TIME, FOOD_REFILL_TIME, _isEating, BtnFood, foodActiveColor, inactiveColor, delta);
-                    _pet.Stamina = _gameService.UpdateResource(_pet.Stamina, STAMINA_DEPLETE_TIME, STAMINA_REFILL_TIME, _isResting, BtnStamina, staminaActiveColor, inactiveColor, delta);
-                    _pet.Water = _gameService.UpdateResource(_pet.Water, WATER_DEPLETE_TIME, WATER_REFILL_TIME, _isDrinking, BtnWater, waterActiveColor, inactiveColor, delta);
-
-                    _gameService.UpdatePetState(_pet.Food, ref _timeWithoutFood, GRACE_PERIOD_TIME, ref _dyingFromHunger, ref _isEating, ref foodImage, delta);
-                    _gameService.UpdatePetState(_pet.Stamina, ref _timeWithoutRest, GRACE_PERIOD_TIME, ref _dyingFromExhaustion, ref _isResting, ref staminaImage, delta);
-                    _gameService.UpdatePetState(_pet.Water, ref _timeWithoutWater, GRACE_PERIOD_TIME, ref _dyingFromThirst, ref _isDrinking, ref waterImage, delta);
-
-                    _isDying = (_dyingFromHunger || _dyingFromExhaustion || _dyingFromThirst);
-                    if (_isDying)
-                    {
-                        _pet.Health = Math.Max(0, _pet.Health - 100 / (TIME_TO_DIE / delta));
-                    }
-
-                    if (_pet.Health == 0)
-                    {
-                        await ApiService.DeletePetAsync(_tokens["id_token"]);
-
-                        double prevHigh = await ApiService.GetXPAsync(_tokens["id_Token"]);
-                        if (_pet.XP > prevHigh)
-                        {
-                            await ApiService.PutXPAsync(_tokens["id_Token"], _pet.XP);
-                        }
-
-                        await ApiService.PutPetStatsAsync(_tokens["id_Token"], _pet);
-
-                        MessageBox.Show($"Your pet died :( with a XP of {_pet.XP:F2}. Highest XP: {prevHigh:F2}");
-                        Logging.Logger.Debug("GameLoop: Pet has died XP: " + _pet.XP);
                         restartButton.Visibility = Visibility.Visible;
-                        _pet = null;
+                        petImage.Visibility = Visibility.Hidden;
+
+                        hpBar.Value = 0;
+                        staminaLabel.Text = 0.ToString();
+                        waterLabel.Text = 0.ToString();
+                        foodLabel.Text = 0.ToString();
+
+                        petNameLabel.Text = string.Empty;
+                        xpLabel.Text = "You have no pet :(";
                     }
                     else
                     {
-                        _timeTillXP += delta;
-                        if (_timeTillXP >= TIME_FOR_POINT)
+                        _gameService.AnimatePetToPosition();
+                        petNameLabel.Text = _pet.PetName;
+                        xpLabel.Text = "XP: " + _pet.XP.ToString();
+                        hpBar.Value = _pet.Health;
+
+                        petImage.Visibility = Visibility.Visible;
+                        restartButton.Visibility = Visibility.Hidden;
+
+                        var petStatus = new
                         {
-                            _pet.XP = Math.Min(long.MaxValue, _pet.XP + 1);
-                            _timeTillXP = 0;
+                            _pet.XP,
+                            Health = _pet.Health.ToString("F2"),
+                            Food = new
+                            {
+                                Level = _pet.Food.ToString("F2"),
+                                IsActive = _isEating,
+                                DyingFrom = _dyingFromHunger
+                            },
+                            Stamina = new
+                            {
+                                Level = _pet.Stamina.ToString("F2"),
+                                IsActive = _isResting,
+                                DyingFrom = _dyingFromExhaustion
+                            },
+                            Water = new
+                            {
+                                Level = _pet.Water.ToString("F2"),
+                                IsActive = _isDrinking,
+                                DyingFrom = _dyingFromThirst
+                            },
+                        };
+                        Logging.Logger.Debug($"GameLoop: PET {_pet?.PetName}:\n" + JsonConvert.SerializeObject(petStatus));
+
+                        _pet.Food = _gameService.UpdateResource(_pet.Food, FOOD_DEPLETE_TIME, FOOD_REFILL_TIME, _isEating, BtnFood, foodActiveColor, inactiveColor, delta);
+                        _pet.Stamina = _gameService.UpdateResource(_pet.Stamina, STAMINA_DEPLETE_TIME, STAMINA_REFILL_TIME, _isResting, BtnStamina, staminaActiveColor, inactiveColor, delta);
+                        _pet.Water = _gameService.UpdateResource(_pet.Water, WATER_DEPLETE_TIME, WATER_REFILL_TIME, _isDrinking, BtnWater, waterActiveColor, inactiveColor, delta);
+
+                        staminaLabel.Text = _pet.Stamina.ToString("F0");
+                        waterLabel.Text = _pet.Water.ToString("F0");
+                        foodLabel.Text = _pet.Food.ToString("F0");
+
+                        _gameService.UpdatePetState(_pet.Food, ref _timeWithoutFood, GRACE_PERIOD_TIME, ref _dyingFromHunger, ref _isEating, delta);
+                        _gameService.UpdatePetState(_pet.Stamina, ref _timeWithoutRest, GRACE_PERIOD_TIME, ref _dyingFromExhaustion, ref _isResting, delta);
+                        _gameService.UpdatePetState(_pet.Water, ref _timeWithoutWater, GRACE_PERIOD_TIME, ref _dyingFromThirst, ref _isDrinking, delta);
+
+                        FlashTime(delta);
+
+                        _isDying = (_dyingFromHunger || _dyingFromExhaustion || _dyingFromThirst);
+                        if (_isDying)
+                        {
+                            _pet.Health = Math.Max(0, _pet.Health - 100 / (TIME_TO_DIE / delta));
+                        }
+
+                        if (_pet.Health == 0)
+                        {
+                            await ApiService.DeletePetAsync(_tokens["id_token"]);
+
+                            //double prevHigh = await ApiService.GetXPAsync(_tokens["id_Token"]); TODO
+                            //if (_pet.XP > prevHigh)
+                            //{
+                            //    await ApiService.PutXPAsync(_tokens["id_Token"], _pet.XP);
+                            //}
+
+                            //MessageBox.Show($"Your pet died :( with a XP of {_pet.XP:F2}. Highest XP: {prevHigh:F2}");
+
+                            Logging.Logger.Debug("GameLoop: Pet has died XP: " + _pet.XP);
+                            restartButton.Visibility = Visibility.Visible;
+                            _pet = null;
+                        }
+                        else
+                        {
+                            _timeTillXP += delta;
+                            if (_timeTillXP >= TIME_FOR_POINT)
+                            {
+                                _pet.XP = Math.Min(long.MaxValue, _pet.XP + 1);
+                                xpLabel.Text = "XP: " + _pet.XP.ToString();
+                                _timeTillXP = 0;
+                            }
                         }
                     }
                 }
+            }
+            catch (Exception ex)
+            {
+                Logging.Logger.Debug("GameLoop: Error in game loop: " + ex.Message);
             }
         }
 
@@ -337,16 +424,8 @@ namespace tamagotchi_pet
                 _pet = await ApiService.GetPetAsync(_tokens["id_token"]);
                 //_theme = (Themes)Enum.ToObject(typeof(Themes), await ApiService.GetThemeAsync(_tokens["id_token"])); TODO
 
-                if (_pet != null)
-                {
-                    CreatePetDialog inputDialog = new CreatePetDialog();
-
-                    if (inputDialog.ShowDialog() == true)
-                    {
-                        _pet = await ApiService.CreatePetAsync(_tokens["id_token"], inputDialog.ResponseText);
-                        Logging.Logger.Debug("GameLoop: Pet created: " + _pet?.PetName);
-                    }
-                }
+                Canvas.SetLeft(petImage, 106);
+                Canvas.SetTop(petImage, 57);
             }
             catch (Exception ex)
             {
@@ -355,6 +434,8 @@ namespace tamagotchi_pet
         }
 
         //TODO SAVE STATS on close/onsave
+        // await ApiService.PutPetStatsAsync(_tokens["id_Token"], _pet); TODO NB
+
         private async void BtnRestart_Click(object sender, RoutedEventArgs e)
         {
             try
@@ -375,12 +456,13 @@ namespace tamagotchi_pet
                 _pet = await ApiService.GetPetAsync(_tokens["id_token"]);
                 if (_pet == null)
                 {
-                    MessageBox.Show("No pet found. You will be prompted to create a new pet if you wish.");
                     CreatePetDialog inputDialog = new CreatePetDialog();
                     if (inputDialog.ShowDialog() == true)
                     {
                         _pet = await ApiService.CreatePetAsync(_tokens["id_token"], inputDialog.ResponseText);
-                        Logging.Logger.Debug("GameLoop: Pet created: " + _pet?.PetName);
+                        Logging.Logger.Debug("BtnRestart_Click: Pet created: " + _pet?.PetName);
+                        Canvas.SetLeft(petImage, 106);
+                        Canvas.SetTop(petImage, 57);
                     }
                 }
             }
@@ -401,7 +483,7 @@ namespace tamagotchi_pet
                     _theme = settingsDialog.SelectedTheme;
                     simulationSpeed = settingsDialog.SimulationSpeed;
                     SetTheme();
-                    await ApiService.PutThemeAsync(_tokens["id_token"], (int)_theme);
+                    //await ApiService.PutThemeAsync(_tokens["id_token"], (int)_theme); TODO change dropdown value
                 }
             }
             catch (Exception ex)
