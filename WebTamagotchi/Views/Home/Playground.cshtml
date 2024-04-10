@@ -1,7 +1,6 @@
 ﻿@{
     ViewData["Title"] = "Home Page";
 }
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -9,40 +8,150 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Randomly Moving Image</title>
     <style>
-        #movingImage {
-            position: absolute;
+        body {
+            margin: 0; 
+            padding: 0;
+            width: 100vw; 
+            height: 100vh; 
         }
+
+        .my-body{
+            width:100%;
+            height:100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .tamagotchi{
+            border-radius:1rem;
+            width:100%;
+            max-width:350px;
+            height: 550px;
+            background-color: darkred;
+            display:flex;
+            flex-direction:column;
+            padding: 1rem 1.5rem 3rem 1.5rem;
+            box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.2), 0px 6px 0px rgba(0, 0, 0, 0.8);
+        }
+
+        .tamagotchi-screen {
+            flex:2;
+            width:100%;
+            display:flex;
+        }
+
+        .tamagotchi-inner-screen{
+            background-color:gray;
+            flex:1;
+            border: solid 0.25rem black;
+            border-radius:1rem;
+            display:flex;
+            flex-direction:column;
+            padding:0.5rem;
+        }
+
+        .stats-top{
+            flex:1;
+            display:flex;
+            justify-content:space-between;
+        }
+
+        .icon{
+            height:2rem;
+            width:2rem;
+        }
+
+        .health-stats-wrapper{
+            display:flex;
+            gap:0.25rem;
+        }
+
+        .health-stats{
+        font-size:0.65rem;
+        }
+
+        .tamagotchi-pet-playground {
+            flex: 4;
+            display:flex;
+            justify-content: center;
+            align-items:center;
+        }
+
+        .tamagotchi-pet {
+          height: 8rem;
+        }
+
+        .stats-bottom {
+            flex: 1;
+            display: flex;
+            justify-content: space-between;
+            gap:0.25rem;
+        }
+
+        .tamagotchi-controls {
+            flex:1;
+            width: 100%;
+            display:flex;
+            justify-content:space-between;
+            align-items: center;
+        }
+
+        .control-button {
+            width: 3rem;
+            height: 3rem;
+            background-color: darkgray;
+            border-radius: 50%;
+            box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.2), 0px 3px 0px rgba(0, 0, 0, 0.8);
+        }
+
+        .control-button:nth-child(2n){
+        transform: translateY(2rem);
+        }
+
     </style>
 </head>
 <body>
-    <img id="movingImage" src="~/images/tamagotchi.png" alt="Moving Image">
-    <script>
-        // Get the image element
-        var img = document.getElementById('movingImage');
+    <div class="my-body">
+    <div class="tamagotchi">
+        <p class="fw-bold text-light">Pet name</p>
+        <div class="tamagotchi-screen">
+            <div class="tamagotchi-inner-screen">
+                <div class="stats-top">
+                    <div class="health-stats-wrapper">
+                            <img src="icons/account.png" class="icon" />
+                            <div class="health-stats fw-bold">
+                                HP:100<br/>
+                                XP:26
+                                </div>
+                    </div>
+                    
+                        <img src="icons/settings.png" class="icon" />
 
-        // Function to generate random number between min and max
-        function getRandomNumber(min, max) {
-            return Math.random() * (max - min) + min;
-        }
+                </div>
+                    <div class="tamagotchi-pet-playground">
 
-        // Function to move the image randomly
-        function moveImage() {
-            // Get window width and height
-            var windowWidth = window.innerWidth;
-            var windowHeight = window.innerHeight;
+                        <img src="images/pet.png" class="tamagotchi-pet" />
 
-            // Set new random position for the image
-            var newX = getRandomNumber(0, windowWidth - img.width);
-            var newY = getRandomNumber(0, windowHeight - img.height);
+                    </div>
+                    <div class="stats-bottom">
+                        
+                            <p>  <img src="icons/food.png" class="icon" /> 100%</p>
+                            <p>  <img src="icons/stamina.png" class="icon" /> 100%</p>
+                        <p>  <img src="icons/water.png" class="icon" /> 100%</p>
+                       
+                        
+                    </div>
 
-            // Apply new position to the image
-            img.style.left = newX + 'px';
-            img.style.top = newY + 'px';
-        }
+            </div>
+        </div>
+        <div class="tamagotchi-controls">
+            <div class="control-button"></div>
+                <div class="control-button"></div>
+                <div class="control-button"></div>
+        </div>
+    </div>
+    </div>
 
-        // Call moveImage function initially and then at intervals
-        moveImage(); // Initial position
-        setInterval(moveImage, 3000); // Move every 3 seconds
-    </script>
 </body>
 </html>
