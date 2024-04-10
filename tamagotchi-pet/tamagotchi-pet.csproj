@@ -45,10 +45,17 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Dialogs\SettingsDialog.xaml.cs">
+      <DependentUpon>SettingsDialog.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Dialogs\CreatePetDialog.xaml.cs">
       <DependentUpon>CreatePetDialog.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Models\ThemeDTO.cs" />
+    <Compile Include="Models\UpdatePetStatsDTO.cs" />
+    <Compile Include="Models\XPDTO.cs" />
     <Compile Include="Models\Pet.cs" />
+    <Compile Include="Models\Themes.cs" />
     <Compile Include="Models\User.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Services\ApiService.cs" />
@@ -118,11 +125,14 @@
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Resource Include="Resources\water.png" />
-    <Resource Include="Resources\background.png" />
     <Resource Include="Resources\account.png" />
     <Resource Include="Resources\settings.png" />
     <Resource Include="Resources\pet.png" />
     <Resource Include="Resources\bar.png" />
+    <Resource Include="Resources\backgroundBlack.png" />
+    <Resource Include="Resources\backgroundBlue.png" />
+    <Resource Include="Resources\backgroundGreen.png" />
+    <Resource Include="Resources\backgroundRed.png" />
     <Content Include="Resources\food2.png" />
     <Resource Include="Resources\stamina.png" />
     <Resource Include="Resources\replay.png" />
@@ -132,6 +142,10 @@
     </VSCTCompile>
   </ItemGroup>
   <ItemGroup>
+    <Page Include="Dialogs\SettingsDialog.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="Dialogs\CreatePetDialog.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>

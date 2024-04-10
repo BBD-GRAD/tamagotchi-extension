@@ -1,6 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using tamagotchi_pet.Models;
 
 namespace tamagotchi_pet.Models
 {

@@ -11,6 +11,8 @@ using tamagotchi_pet.Utils;
 using tamagotchi_pet.Models;
 using Serilog;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
+using tamagotchi_pet.DTOs;
 
 namespace tamagotchi_pet
 {
@@ -61,6 +63,7 @@ namespace tamagotchi_pet
         private bool _isDying = false;
 
         private Pet _pet = null;
+        private Themes _theme = Themes.Black;
 
         static TamagotchiWindowControl()
         {
@@ -74,7 +77,14 @@ namespace tamagotchi_pet
         {
             InitializeComponent();
             petImage.Visibility = Visibility.Hidden;
+            restartButton.Visibility = Visibility.Visible;
+            petImage.Visibility = Visibility.Hidden;
+            foodImage.Visibility = Visibility.Hidden;
+            staminaImage.Visibility = Visibility.Hidden;
             waterImage.Visibility = Visibility.Hidden;
+            petNameLabel.Text = string.Empty;
+            xpLabel.Text = string.Empty;
+
             Loaded += OnLoaded; //user settigns TODO
         }
 
@@ -92,33 +102,40 @@ namespace tamagotchi_pet
 
         private async void OnLoaded(object sender, RoutedEventArgs e)
         {
-            Dictionary<string, string> oldTokens = TokenStorage.RetrieveTokens();
-            if (oldTokens.Count == 0)
+            try
             {
-                Logging.Logger.Debug("OnLoaded: No token file found");
-                MessageBox.Show("No previous session tokens found please login.");
+                Dictionary<string, string> oldTokens = TokenStorage.RetrieveTokens();
+                if (oldTokens.Count == 0)
+                {
+                    Logging.Logger.Debug("OnLoaded: No token file found");
+                    MessageBox.Show("No previous session tokens found please login.");
+                }
+                else
+                {
+                    Logging.Logger.Debug("OnLoaded: Old tokens retrieved successfully:\n" + JsonConvert.SerializeObject(oldTokens, Formatting.Indented));
+                    _tokens = oldTokens;
+                    await AuthFlow.RefreshTokensAsync(_tokens["id_token"], _tokens["refresh_token"]);
+                    Dictionary<string, string> newTokens = TokenStorage.RetrieveTokens();
+                    _tokens = newTokens;
+                    Logging.Logger.Debug("OnLoaded: New tokens retrieved successfully:\n" + JsonConvert.SerializeObject(newTokens, Formatting.Indented));
+
+                    _pet = await ApiService.GetPetAsync(_tokens["id_token"]);
+                    //_theme = (Themes)Enum.ToObject(typeof(Themes), await ApiService.GetThemeAsync(_tokens["id_token"])); TODO
+                }
+
+                refreshTimer = new System.Timers.Timer(3500000); //58min
+                refreshTimer.Elapsed += OnTimedRefresh;
+                refreshTimer.AutoReset = true;
+                refreshTimer.Enabled = true;
+
+                _gameService = new GameService(ref petImage, ref gameCanvas, ref petCanvasTranslateTransform, ref movementArea);
+                SetTheme();
+                StartGame();
             }
-            else
+            catch (Exception ex)
             {
-                Logging.Logger.Debug("OnLoaded: Old tokens retrieved successfully:\n" + JsonConvert.SerializeObject(oldTokens, Formatting.Indented));
-                _tokens = oldTokens;
-                await AuthFlow.RefreshTokensAsync(_tokens["id_token"], _tokens["refresh_token"]);
-                Dictionary<string, string> newTokens = TokenStorage.RetrieveTokens();
-                _tokens = newTokens;
-                Logging.Logger.Debug("OnLoaded: New tokens retrieved successfully:\n" + JsonConvert.SerializeObject(newTokens, Formatting.Indented));
-
-                _pet = await ApiService.GetPetAsync(_tokens["id_token"]);
-                //get settings
+                Logging.Logger.Debug("OnLoaded: Error occured: " + ex.Message);
             }
-
-            refreshTimer = new System.Timers.Timer(3500000); //58min
-            refreshTimer.Elapsed += OnTimedRefresh;
-            refreshTimer.AutoReset = true;
-            refreshTimer.Enabled = true;
-
-            _gameService = new GameService(ref petImage, ref gameCanvas, ref petCanvasTranslateTransform, ref movementArea);
-
-            StartGame();
         }
 
         private async void OnTimedRefresh(Object source, System.Timers.ElapsedEventArgs e)
@@ -140,6 +157,40 @@ namespace tamagotchi_pet
             }
         }
 
+        private void SetTheme()
+        {
+            ImageSourceConverter imgConv = new ImageSourceConverter();
+            string path;
+            ImageSource imageSource;
+            switch (_theme)
+            {
+                case Themes.Black:
+                    path = "pack://application:,,,/tamagotchi-pet;component/Resources/backgroundBlack.png";
+                    imageSource = (ImageSource)imgConv.ConvertFromString(path);
+                    backImage.ImageSource = imageSource;
+
+                    break;
+
+                case Themes.Red:
+                    path = "pack://application:,,,/tamagotchi-pet;component/Resources/backgroundRed.png";
+                    imageSource = (ImageSource)imgConv.ConvertFromString(path);
+                    backImage.ImageSource = imageSource;
+                    break;
+
+                case Themes.Green:
+                    path = "pack://application:,,,/tamagotchi-pet;component/Resources/backgroundGreen.png";
+                    imageSource = (ImageSource)imgConv.ConvertFromString(path);
+                    backImage.ImageSource = imageSource;
+                    break;
+
+                case Themes.Blue:
+                    path = "pack://application:,,,/tamagotchi-pet;component/Resources/backgroundBlue.png";
+                    imageSource = (ImageSource)imgConv.ConvertFromString(path);
+                    backImage.ImageSource = imageSource;
+                    break;
+            }
+        }
+
         private async void GameLoop(object sender, EventArgs e) //TODO TRY CATCH NB!
         {
             double delta = REFRESH_PERIOD * simulationSpeed;
@@ -153,7 +204,7 @@ namespace tamagotchi_pet
                     staminaImage.Visibility = Visibility.Hidden;
                     waterImage.Visibility = Visibility.Hidden;
                     petNameLabel.Text = string.Empty;
-                    xpLabel.Text = string.Empty;
+                    xpLabel.Text = "You have no pet :(";
                 }
                 else
                 {
@@ -206,7 +257,16 @@ namespace tamagotchi_pet
                     if (_pet.Health == 0)
                     {
                         await ApiService.DeletePetAsync(_tokens["id_token"]);
-                        //save score to DB
+
+                        double prevHigh = await ApiService.GetXPAsync(_tokens["id_Token"]);
+                        if (_pet.XP > prevHigh)
+                        {
+                            await ApiService.PutXPAsync(_tokens["id_Token"], _pet.XP);
+                        }
+
+                        await ApiService.PutPetStatsAsync(_tokens["id_Token"], _pet);
+
+                        MessageBox.Show($"Your pet died :( with a XP of {_pet.XP:F2}. Highest XP: {prevHigh:F2}");
                         Logging.Logger.Debug("GameLoop: Pet has died XP: " + _pet.XP);
                         restartButton.Visibility = Visibility.Visible;
                         _pet = null;
@@ -270,10 +330,12 @@ namespace tamagotchi_pet
         {
             try
             {
+                //SAVE STATS
                 await AuthFlow.StartAuth();
                 Dictionary<string, string> retrievedTokens = TokenStorage.RetrieveTokens();
                 _tokens = retrievedTokens;
                 _pet = await ApiService.GetPetAsync(_tokens["id_token"]);
+                //_theme = (Themes)Enum.ToObject(typeof(Themes), await ApiService.GetThemeAsync(_tokens["id_token"])); TODO
 
                 if (_pet != null)
                 {
@@ -292,6 +354,7 @@ namespace tamagotchi_pet
             }
         }
 
+        //TODO SAVE STATS on close/onsave
         private async void BtnRestart_Click(object sender, RoutedEventArgs e)
         {
             try
@@ -309,12 +372,16 @@ namespace tamagotchi_pet
                 _isDrinking = false;
                 _isDying = false;
 
-                CreatePetDialog inputDialog = new CreatePetDialog();
-
-                if (inputDialog.ShowDialog() == true)
+                _pet = await ApiService.GetPetAsync(_tokens["id_token"]);
+                if (_pet == null)
                 {
-                    _pet = await ApiService.CreatePetAsync(_tokens["id_token"], inputDialog.ResponseText);
-                    Logging.Logger.Debug("GameLoop: Pet created: " + _pet?.PetName);
+                    MessageBox.Show("No pet found. You will be prompted to create a new pet if you wish.");
+                    CreatePetDialog inputDialog = new CreatePetDialog();
+                    if (inputDialog.ShowDialog() == true)
+                    {
+                        _pet = await ApiService.CreatePetAsync(_tokens["id_token"], inputDialog.ResponseText);
+                        Logging.Logger.Debug("GameLoop: Pet created: " + _pet?.PetName);
+                    }
                 }
             }
             catch (Exception ex)
@@ -323,11 +390,24 @@ namespace tamagotchi_pet
             }
         }
 
-        private void BtnSettings(object sender, RoutedEventArgs e)
+        private async void BtnSettings_Clicked(object sender, RoutedEventArgs e)
         {
-            MessageBox.Show(
-                string.Format(System.Globalization.CultureInfo.CurrentUICulture, "Settings Invoked", this.ToString()),
-                "TamagotchiWindow");
+            try
+            {
+                SettingsDialog settingsDialog = new SettingsDialog();
+
+                if (settingsDialog.ShowDialog() == true)
+                {
+                    _theme = settingsDialog.SelectedTheme;
+                    simulationSpeed = settingsDialog.SimulationSpeed;
+                    SetTheme();
+                    await ApiService.PutThemeAsync(_tokens["id_token"], (int)_theme);
+                }
+            }
+            catch (Exception ex)
+            {
+                Logging.Logger.Debug("BtnSettings_Clicked: Error saving settings: " + ex.Message);
+            }
         }
     }
 }

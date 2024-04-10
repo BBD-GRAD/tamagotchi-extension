@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using tamagotchi_pet.Models;
 using tamagotchi_pet.Utils;
+using tamagotchi_pet.DTOs;
 
 namespace tamagotchi_pet.Services
 {
@@ -61,6 +62,105 @@ namespace tamagotchi_pet.Services
             return null;
         }
 
+        public static async Task<int> GetThemeAsync(string idToken)
+        {
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", idToken);
+            try
+            {
+                HttpResponseMessage response = await client.GetAsync("api/User/theme");
+                if (response.IsSuccessStatusCode)
+                {
+                    var theme = JsonConvert.DeserializeObject<ThemeDTO>(await response.Content.ReadAsStringAsync());
+                    return theme.themeid;
+                }
+            }
+            catch (HttpRequestException e)
+            {
+                Logging.Logger.Debug($"Network error: {e.Message}");
+            }
+            return 0;
+        }
+
+        public static async Task<bool> PutThemeAsync(string idToken, int themeId)
+        {
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", idToken);
+            ThemeDTO themeData = new ThemeDTO
+            {
+                themeid = themeId
+            };
+            try
+            {
+                var jsonContent = JsonConvert.SerializeObject(themeData);
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+
+                HttpResponseMessage response = await client.PutAsync("api/User/theme", content);
+                if (response.IsSuccessStatusCode)
+                {
+                    return true;
+                }
+                else
+                {
+                    Logging.Logger.Debug($"Failed to update theme: {response.StatusCode}");
+                    return false;
+                }
+            }
+            catch (HttpRequestException e)
+            {
+                Logging.Logger.Debug($"Network error: {e.Message}");
+                return false;
+            }
+        }
+
+        public static async Task<long> GetXPAsync(string idToken)
+        {
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", idToken);
+            try
+            {
+                HttpResponseMessage response = await client.GetAsync("api/User/xp");
+                if (response.IsSuccessStatusCode)
+                {
+                    var xp = JsonConvert.DeserializeObject<XPDTO>(await response.Content.ReadAsStringAsync());
+                    return xp.xp;
+                }
+            }
+            catch (HttpRequestException e)
+            {
+                Logging.Logger.Debug($"Network error: {e.Message}");
+            }
+            return 0;
+        }
+
+        public static async Task<bool> PutXPAsync(string idToken, long xp)
+        {
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", idToken);
+
+            XPDTO xpData = new XPDTO
+            {
+                xp = xp
+            };
+            try
+            {
+                var jsonContent = JsonConvert.SerializeObject(xpData);
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+
+                HttpResponseMessage response = await client.PutAsync("api/User/xp", content);
+                if (response.IsSuccessStatusCode)
+                {
+                    return true;
+                }
+                else
+                {
+                    Logging.Logger.Debug($"Failed to update XP: {response.StatusCode}");
+                    return false;
+                }
+            }
+            catch (HttpRequestException e)
+            {
+                Logging.Logger.Debug($"Network error: {e.Message}");
+                return false;
+            }
+        }
+
         public static async Task<bool> DeletePetAsync(string idToken)
         {
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", idToken);
@@ -110,6 +210,32 @@ namespace tamagotchi_pet.Services
                 Logging.Logger.Debug($"Network error: {e.Message}");
             }
             return null;
+        }
+
+        public static async Task<bool> PutPetStatsAsync(string idToken, Pet pet)
+        {
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", idToken);
+            try
+            {
+                var jsonContent = JsonConvert.SerializeObject(pet);
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+
+                HttpResponseMessage response = await client.PutAsync("api/Pet", content);
+                if (response.IsSuccessStatusCode)
+                {
+                    return true;
+                }
+                else
+                {
+                    Logging.Logger.Debug($"Failed to update XP: {response.StatusCode}");
+                    return false;
+                }
+            }
+            catch (HttpRequestException e)
+            {
+                Logging.Logger.Debug($"Network error: {e.Message}");
+                return false;
+            }
         }
     }
 }

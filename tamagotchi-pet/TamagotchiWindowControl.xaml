@@ -35,11 +35,11 @@
 
     <Grid>
         <Grid.Background>
-            <ImageBrush ImageSource="pack://application:,,,/tamagotchi-pet;component/Resources/background.png" />
+            <ImageBrush x:Name ="backImage" ImageSource="Resources/backgroundBlack.png" />
         </Grid.Background>
         <Canvas Name="gameCanvas">
             <Rectangle x:Name="movementArea" Stroke="Black" StrokeThickness="2" Margin="31,16,34,87" />
-            <Canvas Name="petCanvas">
+            <Canvas Name="petCanvas" Canvas.Left="0" Canvas.Top="0">
                 <Canvas.RenderTransform>
                     <TranslateTransform x:Name="petCanvasTranslateTransform" />
                 </Canvas.RenderTransform>
@@ -49,20 +49,20 @@
                         <BlurEffect Radius="1" />
                     </TextBlock.Effect>
                 </TextBlock>
-                <Image Name="petImage" Source="pack://application:,,,/tamagotchi-pet;component/Resources/pet.png"
+                <Image Name="petImage" Source="Resources/pet.png"
            Width="30" Height="30" Canvas.Left="82" Canvas.Top="56" />
             </Canvas>
-            <Image Name="waterImage" Source="pack://application:,,,/tamagotchi-pet;component/Resources/water.png"
+            <Image Name="waterImage" Source="Resources/water.png"
                 Width="20" Height="20" Canvas.Left="142" Canvas.Top="90" />
 
-            <Image Name="foodImage" Source="pack://application:,,,/tamagotchi-pet;component/Resources/food2.png"
+            <Image Name="foodImage" Source="Resources/food2.png"
                 Width="20" Height="20" Canvas.Left="102" Canvas.Top="90" />
 
-            <Image Name="staminaImage" Source="pack://application:,,,/tamagotchi-pet;component/Resources/stamina.png"
+            <Image Name="staminaImage" Source="Resources/stamina.png"
                 Width="20" Height="20" Canvas.Left="122" Canvas.Top="90" />
 
-            <TextBlock x:Name="xpLabel" Text="XP: 0" Canvas.Left="37" Canvas.Top="93"
-           FontSize="10" FontWeight="Bold" Foreground="Black">
+            <TextBlock x:Name="xpLabel" Text="XP: 0" Canvas.Left="34" Canvas.Top="95"
+           FontSize="10" FontWeight="Bold" Foreground="Black" HorizontalAlignment="Center" VerticalAlignment="Top">
                 <TextBlock.Effect>
                     <BlurEffect Radius="1" />
                 </TextBlock.Effect>
@@ -82,20 +82,20 @@
             <Button Name="loginButton" BorderThickness="0" Style="{StaticResource RoundButton}"
                 Canvas.Left="38" Canvas.Top="21" Height="20" Width="20"  Click="BtnAccount_Click">
                 <Button.Background>
-                    <ImageBrush ImageSource="pack://application:,,,/tamagotchi-pet;component/Resources/account.png" />
+                    <ImageBrush ImageSource="Resources/account.png" />
                 </Button.Background>
             </Button>
 
             <Button Name="restartButton"  BorderThickness="0" Style="{StaticResource RoundButton}"
                 Canvas.Left="85" Canvas.Top="48" Height="30" Width="30" HorizontalAlignment="Left" VerticalAlignment="Top" Click="BtnRestart_Click">
                 <Button.Background>
-                    <ImageBrush ImageSource="pack://application:,,,/tamagotchi-pet;component/Resources/replay.png" />
+                    <ImageBrush ImageSource="Resources/replay.png" />
                 </Button.Background>
             </Button>
             <Button Name="settingsButton"  BorderThickness="0" Style="{StaticResource RoundButton}"
-                Canvas.Left="140" Canvas.Top="21" Height="20" Width="20" HorizontalAlignment="Left" VerticalAlignment="Top" Click="BtnSettings">
+                Canvas.Left="140" Canvas.Top="21" Height="20" Width="20" HorizontalAlignment="Left" VerticalAlignment="Top" Click="BtnSettings_Clicked">
                 <Button.Background>
-                    <ImageBrush ImageSource="pack://application:,,,/tamagotchi-pet;component/Resources/settings.png" />
+                    <ImageBrush ImageSource="Resources/settings.png" />
                 </Button.Background>
             </Button>
         </Canvas>
