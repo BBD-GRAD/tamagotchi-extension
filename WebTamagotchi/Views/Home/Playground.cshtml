@@ -76,10 +76,12 @@
             display:flex;
             justify-content: center;
             align-items:center;
+            position: relative;
         }
 
         .tamagotchi-pet {
           height: 8rem;
+          position: absolute;
         }
 
         .stats-bottom {
@@ -129,9 +131,9 @@
                         <img src="icons/settings.png" class="icon" />
 
                 </div>
-                    <div class="tamagotchi-pet-playground">
+                    <div class="tamagotchi-pet-playground" >
 
-                        <img src="images/pet.png" class="tamagotchi-pet" />
+                        <img src="images/pet.png" class="tamagotchi-pet" id="movingImage" />
 
                     </div>
                     <div class="stats-bottom">
@@ -152,6 +154,30 @@
         </div>
     </div>
     </div>
+    <script>
+        var img = document.getElementById('movingImage');
+        function getRandomNumber(min, max) {
+            return Math.random() * (max - min) + min;
+        }
 
+        function moveImage() {
+            var windowWidth = window.innerWidth;
+            var windowHeight = window.innerHeight;
+            var playground = document.querySelector('.tamagotchi-pet-playground');
+            var playgroundWidth = playground.clientWidth;
+            var playgroundHeight = playground.clientHeight;
+
+            var maxX = playgroundWidth - img.width;
+            var maxY = playgroundHeight - img.height;
+
+            var newX = getRandomNumber(0, maxX);
+            var newY = getRandomNumber(0, maxY);
+
+            img.style.left = newX + 'px';
+            img.style.top = newY + 'px';
+        }
+        moveImage(); 
+        setInterval(moveImage, 3000); 
+    </script>
 </body>
 </html>
