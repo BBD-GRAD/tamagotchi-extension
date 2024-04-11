@@ -1,13 +1,13 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using TamagotchiAPI.Data;
-using TamagotchiAPI.Models;
 using Microsoft.EntityFrameworkCore;
+using TamagotchiAPI.Data;
 using TamagotchiAPI.DTOs;
+using TamagotchiAPI.Models;
 
 namespace TamagotchiAPI.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/[controller]")] 
     [ApiController]
     [Authorize]
     public class PetController : ControllerBase
@@ -35,7 +35,6 @@ namespace TamagotchiAPI.Controllers
             }
 
             var pet = await _context.Pets
-                     //.Include(p => p.User)
                      .FirstOrDefaultAsync(p => p.UserId == userId);
 
             if (pet == null)
@@ -66,9 +65,11 @@ namespace TamagotchiAPI.Controllers
             {
                 UserId = userId,
                 PetName = petDTO.PetName,
-                // Initial pet stats
-                XP = 0,
-                Happiness = 50,
+                Food = 100.0,
+                Health = 100.0,
+                Water = 100.0,
+                Stamina = 100.0,
+                XP = 0L
             };
 
             _context.Pets.Add(pet);
