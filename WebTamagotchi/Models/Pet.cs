@@ -10,7 +10,7 @@ namespace WebTamagotchi.Models
         public int PetId { get; set; }
 
         [Required]
-        [ForeignKey("User")]
+        [ForeignKey("User")] 
         public string UserId { get; set; }
 
         [Required]
