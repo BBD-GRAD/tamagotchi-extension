@@ -8,7 +8,7 @@ using WebTamagotchi.Models;
 
 namespace WebTamagotchi.Controllers
 {
-    //[Authorize]
+    [Authorize]
     public class HomeController : Controller
     {
         private readonly ITamagotchiRepository _tamagotchiRepository;
@@ -26,9 +26,9 @@ namespace WebTamagotchi.Controllers
             return View(_memory.pet);
         }
 
-        [AllowAnonymous]
         public IActionResult PlayGround()
         {
+            _tamagotchiRepository.CreatePetAsync(new Pet() { PetName = "Test"});
             return View(_memory.pet);
         }
 

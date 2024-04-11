@@ -20,7 +20,7 @@ builder.Services.AddAuthentication(options =>
 builder.Services.AddSingleton<ViewModel>();
 builder.Services.AddControllersWithViews();
 builder.Services.AddHttpClient<ITamagotchiRepository, TamagotchiRepository>(c =>
-c.BaseAddress = new Uri("https://localhost:7163/"));
+c.BaseAddress = new Uri("http://tamagotchi-extension.eu-west-1.elasticbeanstalk.com"));
 
 var app = builder.Build();
 
@@ -37,6 +37,6 @@ app.UseAuthorization();
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Account}/{action=Test}");
+    pattern: "{controller=Home}/{action=PlayGround}");
 
 app.Run();
