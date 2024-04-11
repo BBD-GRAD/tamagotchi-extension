@@ -117,7 +117,6 @@
 </head>
 <body>
     <button @onclick="AuthenticateUser">Login with Google</button>
-    <p>@memoryClass.IdToken</p>
     @code {
         private void AuthenticateUser()
         {
@@ -125,7 +124,7 @@
             _navigationService._navigationManager.NavigateTo(url, true);
         }
     }
-    @* <div class="my-body">
+    <div class="my-body">
         <div class="tamagotchi">
             <p class="fw-bold text-light">Pet name</p>
             <div class="tamagotchi-screen">
@@ -153,7 +152,18 @@
                         <div class="d-flex align-items-center"> <img src="./icons/food.png" class="icon" /> <div id="food-stat">...</div></div>
 
                         <div class="d-flex align-items-center">
-                            <img src="./icons/stamina.png" class="icon" /> <div id="stamina-stat">...</div>
+                            <img src="./icons/stamina.png" class="icon" /> 
+                            @if (pet != null)
+                            {
+                                <div id="stamina-stat">
+                                    @pet.Stamina;
+                                </div>
+                            }
+                            else
+                            {
+                                <p>...</p>
+                            }
+
                         </div>
 
                         <div class="d-flex align-items-center">
@@ -164,9 +174,9 @@
                 </div>
             </div>
             <div class="tamagotchi-controls">
-                <div class="control-button"><a class="" asp-area="" asp-controller="Home" asp-action="Feed">Eat</a></div>
-                <div class="control-button"><a class="" asp-area="" asp-controller="Home" asp-action="Water">Drink</a></div>
-                <div class="control-button"><a class="" asp-area="" asp-controller="Home" asp-action="Rest">Rest</a></div>
+                <button @onclick="Feed">Eat</button>
+                <button @onclick="Rest">Rest</button>
+                <button @onclick="Water">Drink</button>
             </div>
         </div>
     </div>
@@ -216,7 +226,7 @@
         // Call updateModelValues initially and then every few seconds
         updateModelValues();
         setInterval(updateModelValues, 1000);
-    </script> *@
+    </script>
 </body>
 </html>
 

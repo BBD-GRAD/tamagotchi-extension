@@ -1,9 +1,8 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace TamagotchiAPI.DTOs;
+namespace BlazorTamagotchi.DTOs;
 
 public class HighScoreDTO
 {
-    [Required]
     public long Highscore { get; set; }
 }

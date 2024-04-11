@@ -1,11 +1,11 @@
 ﻿using BlazorTamagotchi.Models;
 using BlazorTamagotchi.Services;
 using Microsoft.AspNetCore.Components;
-using System.Net.Http.Headers;
-using System.Net.Http.Json;
 using System.Text;
-using System.Text.Json;
-using System.Text.Json.Serialization;
+using Newtonsoft.Json;
+using System;
+using System.Timers;
+using System.Formats.Asn1;
 
 namespace BlazorTamagotchi.Pages
 {
@@ -16,7 +16,6 @@ namespace BlazorTamagotchi.Pages
         private const string GoogleRedirectUri = "http://localhost:5245";
 
         [Inject] NavigationService _navigationService { get; set; }
-        [Inject] ApiService _apiService { get; set; }
         [Inject] HttpClient _client { get; set; }
 
         public string BuildGoogleOAuthUrl()
@@ -57,10 +56,10 @@ namespace BlazorTamagotchi.Pages
             if (response.IsSuccessStatusCode)
             {
                 var responseContent = await response.Content.ReadAsStringAsync();
-                var tokens = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, dynamic>>(responseContent);
+                var tokens = JsonConvert.DeserializeObject<Dictionary<string, string>>(responseContent);
 
-                memoryClass.RefreshToken = tokens["refresh_token"].ToString();
-                memoryClass.IdToken = tokens["id_token"].ToString();
+                memoryClass.RefreshToken = tokens["refresh_token"];
+                memoryClass.IdToken = tokens["id_token"];
 
                 StartGame();
                 Console.WriteLine("Authentication successful!");
@@ -73,27 +72,206 @@ namespace BlazorTamagotchi.Pages
 
         private async Task StartGame()
         {
-            await _apiService.AuthenticateAsync(memoryClass.IdToken);
-            Pet pet = await _apiService.GetPetAsync(memoryClass.IdToken);
+            await ApiService.AuthenticateAsync(memoryClass.IdToken);
+            pet = await ApiService.GetPetAsync(memoryClass.IdToken);
+            if (pet == null)
+            {
+                CreatePet("MitchTest");
+            }
 
-            var dummy = 1;
-            _client.BaseAddress = new Uri("http://tamagotchi-extension.eu-west-1.elasticbeanstalk.com/");
+            currentState = PetStates.Happy;
+            gracePeriod = 0;
+
+            timer = new System.Timers.Timer(/*TimeSpan.FromMinutes(1).TotalMilliseconds*/5000);
+            timer.AutoReset = true;
+            timer.Elapsed += new System.Timers.ElapsedEventHandler(GameLoop);
+            timer.Start();
         }
 
-        //public async Task<Pet> GetPetAsync()
-        //{
-        //    HttpResponseMessage response = await _client.PostAsJsonAsync("https://localhost:7163/swagger/index.html/api/Pet", new Pet() { PetName = "Alfred" });
-        //    response.EnsureSuccessStatusCode();
-        //    Pet PetInfo = null;
-        //    HttpResponseMessage Res = await _client.GetAsync("http://tamagotchi-extension.eu-west-1.elasticbeanstalk.com/api/Pet");
-        //    if (Res.IsSuccessStatusCode)
-        //    {
-        //        var PetResponse = Res.Content.ReadAsStringAsync().Result;
-        //        PetInfo = JsonSerializer.Deserialize<Pet>(PetResponse);
-        //    }
+        public System.Timers.Timer timer;
+        public Pet pet;
+        public PetStates currentState;
+        public int gracePeriod;
+        public const float healthDrainConst = 100 / 60;
 
-        //    return PetInfo;
-        //}
+        private async void GameLoop(object sender, ElapsedEventArgs e)
+        {
+            if (pet != null)
+            {
+                pet.XP += 1;
+
+                if (!currentState.Equals(PetStates.Eating))
+                {
+                    pet.Food -= (double)(100d / 180d);
+                    pet.Food = Math.Round(Math.Clamp(pet.Food, 0, 100), 2);
+                }
+
+                if (!currentState.Equals(PetStates.Drinking))
+                {
+                    pet.Water -= (100d / 60d);
+                    pet.Water = Math.Round(Math.Clamp(pet.Water, 0, 100), 2);
+                }
+
+                if (!currentState.Equals(PetStates.Resting))
+                {
+                    pet.Stamina -= (100d / 50d);
+                    pet.Stamina = Math.Round(Math.Clamp(pet.Stamina, 0, 100), 2);
+                }
+
+                StateChecks(true);
+            }
+            else
+            {
+                // Popup Create pet
+            }
+        }
+        private async void CheckScore()
+        {
+            long currentHighScore = await ApiService.GetHighScoreAsync(memoryClass.IdToken);
+
+            if (currentHighScore > pet.XP)
+            {
+                ApiService.UpdateHighscoreAsync(memoryClass.IdToken, pet.XP);
+            }
+        }
+
+        public async void CreatePet(string petName)
+        {
+            await ApiService.CreatePetAsync(memoryClass.IdToken, "petName");
+            pet = await ApiService.GetPetAsync(memoryClass.IdToken);
+        }
+
+        public void Feed()
+        {
+            if (currentState.Equals(PetStates.Eating))
+            {
+                currentState = PetStates.Happy;
+            }
+            else
+            {
+                currentState = PetStates.Eating;
+            }
+
+            StateChecks(false);
+        }
+
+        public void Water()
+        {
+            if (currentState.Equals(PetStates.Drinking))
+            {
+                currentState = PetStates.Happy;
+            }
+            else
+            {
+                currentState = PetStates.Drinking;
+            }
+
+            StateChecks(false);
+
+        }
+
+        public void Rest()
+        {
+            if (currentState.Equals(PetStates.Resting))
+            {
+                currentState = PetStates.Happy;
+            }
+            else
+            {
+                currentState = PetStates.Resting;
+            }
+
+            StateChecks(false);
+        }
+        private async void StateChecks(bool updateValues)
+        {
+            if (updateValues && currentState.Equals(PetStates.Hungry) || currentState.Equals(PetStates.Thirsty) || currentState.Equals(PetStates.Sleepy))
+            {
+                if (gracePeriod <= 0)
+                {
+                    pet.Health -= 100 / 60;
+                    if (pet.Health <= 0)
+                    {
+                        ApiService.DeletePetAsync(memoryClass.IdToken);
+                        CheckScore();
+                        currentState = PetStates.Happy;
+                        pet = null;
+                    }
+                }
+            }
+            else if (currentState.Equals(PetStates.Happy))
+            {
+                if (pet.Stamina <= 0)
+                {
+                    currentState = PetStates.Sleepy;
+                }
+                else if (pet.Food <= 0)
+                {
+                    currentState = PetStates.Hungry;
+                }
+                else if (pet.Water <= 0)
+                {
+                    currentState = PetStates.Thirsty;
+                }
+                if (!currentState.Equals(PetStates.Happy) && updateValues)
+                {
+                    gracePeriod = 5;
+                }
+            }
+            else if (currentState.Equals(PetStates.Drinking))
+            {
+                if (updateValues)
+                {
+                    pet.Water += (100 / 5);
+                }
+
+                if (pet.Water >= 100)
+                {
+                    pet.Water = 100;
+
+                    currentState = PetStates.Happy;
+                }
+            }
+            else if (currentState.Equals(PetStates.Eating))
+            {
+                if (updateValues)
+                {
+                    pet.Food += (100 / 15);
+                }
+
+                if (pet.Food >= 100)
+                {
+                    pet.Food = 100;
+
+                    currentState = PetStates.Happy;
+                }
+            }
+            else if (currentState.Equals(PetStates.Resting))
+            {
+                if (updateValues)
+                {
+                    pet.Stamina += (100 / 10);
+                }
+
+                if (pet.Stamina >= 100)
+                {
+                    pet.Stamina = 100;
+
+                    currentState = PetStates.Happy;
+                }
+            }
+        }
+
+        public enum PetStates
+        {
+            Hungry,
+            Thirsty,
+            Sleepy,
+            Happy,
+            Eating,
+            Drinking,
+            Resting
+        }
     }
 }
 

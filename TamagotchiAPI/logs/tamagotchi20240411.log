@@ -1,2 +1,4 @@
 2024-04-11 22:15:03.803 +02:00 [DBG] OnLoaded: No token file found
 2024-04-11 22:15:05.730 +02:00 [DBG] StartGame: Game has started
+2024-04-11 23:13:25.741 +02:00 [DBG] OnTimedRefresh: Refresh token timer elapsed.
+2024-04-11 23:13:25.741 +02:00 [DBG] OnTimedRefresh: Error refreshing tokens: The given key was not present in the dictionary.
