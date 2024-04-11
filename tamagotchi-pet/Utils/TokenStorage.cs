@@ -7,13 +7,12 @@ using System.Collections.Generic;
 
 namespace tamagotchi_pet.Utils
 {
-    public static class SecureTokenStorage
+    public static class TokenStorage
     {
-        private static string filePath = "TokenData.dat"; // File to store encrypted token data
+        private static string filePath = "TokenData.dat";
 
         public static void StoreTokens(Dictionary<string, string> tokens)
         {
-            // Serialize dictionary to JSON, then encrypt and store
             string json = JsonConvert.SerializeObject(tokens);
             string encryptedData = EncryptData(json);
             File.WriteAllText(filePath, encryptedData);
@@ -21,10 +20,27 @@ namespace tamagotchi_pet.Utils
 
         public static Dictionary<string, string> RetrieveTokens()
         {
-            // Read encrypted data, decrypt, and deserialize back to dictionary
-            string encryptedData = File.ReadAllText(filePath);
-            string decryptedJson = DecryptData(encryptedData);
-            return JsonConvert.DeserializeObject<Dictionary<string, string>>(decryptedJson);
+            try
+            {
+                if (!File.Exists(filePath))
+                {
+                    return new Dictionary<string, string>();
+                }
+
+                string encryptedData = File.ReadAllText(filePath);
+                if (string.IsNullOrEmpty(encryptedData))
+                {
+                    return new Dictionary<string, string>();
+                }
+
+                string decryptedJson = DecryptData(encryptedData);
+                return JsonConvert.DeserializeObject<Dictionary<string, string>>(decryptedJson);
+            }
+            catch (Exception ex)
+            {
+                Logging.Logger.Debug("Error retrieving tokens from file: " + ex.Message);
+                return new Dictionary<string, string>();
+            }
         }
 
         private static string EncryptData(string data)

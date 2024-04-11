@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace TamagotchiAPI.Models
+namespace tamagotchi_pet.Models
 {
     public class User
     {

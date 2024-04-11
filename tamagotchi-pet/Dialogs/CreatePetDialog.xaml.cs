@@ -1,17 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
+﻿using System.Windows;
 
 namespace tamagotchi_pet.Dialogs
 {
-    public partial class InputDialog : Window
+    public partial class CreatePetDialog : Window
     {
         public string ResponseText { get; private set; }
 
-        public InputDialog()
+        public CreatePetDialog()
         {
             InitializeComponent();
         }
@@ -20,6 +15,7 @@ namespace tamagotchi_pet.Dialogs
         {
             ResponseText = InputTextBox.Text;
             this.DialogResult = true;
+            this.Close();
         }
     }
 }

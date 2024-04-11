@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace TamagotchiAPI.Models
+namespace tamagotchi_pet.Models
 {
     public class Pet
     {
@@ -17,10 +17,19 @@ namespace TamagotchiAPI.Models
         public string PetName { get; set; }
 
         [Required]
-        public int XP { get; set; }
+        public long XP { get; set; }
 
         [Required]
-        public int Happiness { get; set; }
+        public double Water { get; set; }
+
+        [Required]
+        public double Food { get; set; }
+
+        [Required]
+        public double Stamina { get; set; }
+
+        [Required]
+        public double Health { get; set; }
 
         [Required]
         public virtual User User { get; set; }  // Lazy loading

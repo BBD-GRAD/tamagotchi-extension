@@ -43,7 +43,7 @@ namespace TamagotchiAPI
                     ValidateAudience = true,
                     ValidAudience = "794918693940-j1kb0o1gi3utki6th2u6nmoc2i40kqbm.apps.googleusercontent.com",
                     ValidateLifetime = true,
-                    ValidateIssuerSigningKey = true,
+                    ValidateIssuerSigningKey = true,//TODO check key to secret
                 };
                 options.Events = new JwtBearerEvents
                 {
