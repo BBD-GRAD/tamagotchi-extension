@@ -21,7 +21,7 @@
             height:100%;
             display: flex;
             justify-content: center;
-            align-items: center;
+            align-items: start;
         }
 
         .tamagotchi{
@@ -112,9 +112,35 @@
         transform: translateY(2rem);
         }
 
+        .pop-up-backdrop{
+            height:100vh;
+            width: 100vw;
+            position:absolute;
+            display:none;
+            top:0;
+            left:0;
+            background-color: rgba(0,0,0,0.4);
+            z-index:99;
+        }
+
     </style>
 </head>
 <body>
+    <div class="pop-up-backdrop justify-content-center align-items-center" id="settings">
+        <div class="card bg-white w-50 w-sd-75 p-2 shadow rounded-3">
+            <h3>Settings</h3>
+            <input type="text" class="my-4 p-2" placeholder="pet name" />
+            <select class="mb-4 p-2" onchange="changeTamagotchiColor(this)">
+                <option value="darkred">Red</option>
+                <option value="darkgreen">Green</option>
+                <option value="darkblue">Blue</option>
+                <option value="lighblack">Black</option>
+            </select>
+            <button class="btn btn-outline-success" onclick="closeSettings()">submit</button>
+        </div>
+
+    </div>
+    </div>
     <div class="my-body">
     <div class="tamagotchi">
         <p class="fw-bold text-light">Pet name</p>
@@ -130,7 +156,7 @@
                             
                     </div>
                     
-                        <img src="~/icons/settings.png" class="icon" />
+                        <img src="~/icons/settings.png" class="icon" onclick="openSettings()" />
 
                 </div>
                     <div class="tamagotchi-pet-playground" >
@@ -140,14 +166,14 @@
                     </div>
                     <div class="stats-bottom">
 
-                        <div class="d-flex align-items-center"> <img src="~/icons/food.png" class="icon" /> <div id="food-stat">...</div></div>
+                        <div class="d-flex align-items-center"> <img src="~/icons/food.png" class="icon" id="food-icon" /> <div id="food-stat">...</div></div>
                         
                         <div class="d-flex align-items-center">
-                            <img src="~/icons/stamina.png" class="icon" /> <div id="stamina-stat">...</div>
+                            <img src="~/icons/stamina.png" class="icon" id="stamina-icon" /> <div id="stamina-stat">...</div>
                     </div>
 
                         <div class="d-flex align-items-center">
-                            <img src="~/icons/water.png" class="icon" /> <div id="water-stat">...</div>
+                            <img src="~/icons/water.png" class="icon" id="water-icon" /> <div id="water-stat">...</div>
                 </div>
                         
                     </div>
@@ -165,6 +191,40 @@
         var img = document.getElementById('movingImage');
         function getRandomNumber(min, max) {
             return Math.random() * (max - min) + min;
+        }
+
+        const foodIcon = document.getElementById("food-icon");
+        const staminaIcon = document.getElementById("stamina-icon");
+        const waterIcon = document.getElementById("water-icon");
+        const settings = document.getElementById("settings");
+        function changeTamagotchiColor(selectElement) {
+            var tamagotchi = document.querySelector('.tamagotchi');
+            var selectedColor = selectElement.value;
+            tamagotchi.style.backgroundColor = selectedColor;
+        }
+
+        function openSettings(){
+            settings.style.display = 'flex';
+        }
+
+        function closeSettings() {
+            settings.style.display = 'none';
+        }
+
+        let isFoodFlashing = false;
+        let isStaminaFlashing = false;
+        let isWaterFlashing = false;
+
+        function toggleVisibility(element) {
+            if (element.style.visibility === "visible") {
+                element.style.visibility = "hidden";
+            } else {
+                element.style.visibility = "visible";
+            }
+        }
+
+        function stopFlashing(element) {
+                element.style.visibility = "visible";
         }
 
         function moveImage() {
@@ -186,6 +246,8 @@
         moveImage(); 
         setInterval(moveImage, 3000);
 
+
+
         function updateModelValues() {
             fetch('/Home/GetUpdatedModelValues') // Replace this URL with your actual endpoint
                 .then(response => response.json())
@@ -200,6 +262,45 @@
                     document.getElementById('stamina-stat').innerText = `${data.stamina}`;
                     document.getElementById('water-stat').innerText = `${data.water}`;
                     // Update other UI elements similarly
+
+                    //food
+                    
+                    if (data.food <= 0) {
+                        isFoodFlashing = true;
+                    } else {
+                        isFoodFlashing = false;
+                        stopFlashing(foodIcon);
+                    }
+                    
+                    //stamina
+                    if (data.stamina <= 0) {
+                        isStaminaFlashing = true;
+                    } else {
+                        isStaminaFlashing = false;
+                        stopFlashing(staminaIcon);
+                    }
+
+                    //Water
+                    if (data.water <= 0) {
+                        isWaterFlashing = true;
+                    } else {
+                        isWaterFlashing = false;
+                       stopFlashing(waterIcon);
+                    }
+
+
+                    if (isFoodFlashing) {
+                        toggleVisibility(foodIcon);
+                    }
+
+                    if (isStaminaFlashing) {
+                        toggleVisibility(staminaIcon);
+                    } 
+
+                    if (isWaterFlashing) {
+                        toggleVisibility(waterIcon);
+                    }  
+                    
                 })
                 .catch(error => console.error('Error fetching updated model values:', error));
         }
