@@ -140,18 +140,14 @@
                     </div>
                     <div class="stats-bottom">
 
-                        @if (ViewBag.State == "Hungry")
-                        {
-                            <div class="d-flex align-items-center"><img src="~/icons/food.png" class="icon" /> <div id="food-stat">...</div></div>
-                        }
-                        @if (ViewBag.State == "Sleepy")
-                        {
-                            <div class="d-flex align-items-center"><img src="~/icons/stamina.png" class="icon" /> <div id="stamina-stat">...</div></div>
-                        }
-                        @if (ViewBag.State == "Thirsty")
-                        {
-                            <div class="d-flex align-items-center"><img src="~/icons/water.png" class="icon" /> <div id="water-stat">...</div></div>
-                        }
+                        <div class="d-flex align-items-center"> <img src="~/icons/food.png" class="icon" /> <div id="food-stat">...</div></div>
+                        
+                        <div class="d-flex align-items-center">
+                            <img src="~/icons/stamina.png" class="icon" /> <div id="stamina-stat">...</div>
+                    </div>
+
+                        <div class="d-flex align-items-center">
+                            <img src="~/icons/water.png" class="icon" /> <div id="water-stat">...</div>
                 </div>
                         
                     </div>

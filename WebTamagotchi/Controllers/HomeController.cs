@@ -8,7 +8,7 @@ using WebTamagotchi.Models;
 
 namespace WebTamagotchi.Controllers
 {
-    [Authorize]
+    //[Authorize]
     public class HomeController : Controller
     {
         private readonly ITamagotchiRepository _tamagotchiRepository;
@@ -105,8 +105,7 @@ namespace WebTamagotchi.Controllers
                 _memory.pet.XP,
                 _memory.pet.Stamina,
                 _memory.pet.Food,
-                _memory.pet.Water,
-                _memory.pet.PetName,
+                _memory.pet.Water
             };
             return Json(updatedModel);
         }
