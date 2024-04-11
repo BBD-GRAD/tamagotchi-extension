@@ -20,7 +20,16 @@ namespace WebTamagotchi.Models
         public int XP { get; set; }
 
         [Required]
-        public int Happiness { get; set; }
+        public double Health { get; set; }
+        
+        [Required]
+        public double Water { get; set; }
+
+        [Required]
+        public double Food { get; set; }
+
+        [Required]
+        public double Stamina { get; set; }
 
         [Required]
         public virtual User User { get; set; }

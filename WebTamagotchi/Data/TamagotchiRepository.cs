@@ -1,5 +1,4 @@
 ﻿using WebTamagotchi.Models;
-using WebTamagotchi.Helpers;
 using WebTamagotchi.Data;
 using System.Net;
 using System;
@@ -22,7 +21,7 @@ namespace WebTamagotchi.Data
 
         public async Task<Pet> GetPetByUserId(string userID)
         {
-            return new Pet() { Happiness = 10, XP = 2 };
+            return new Pet() { Food = 10, XP = 2 };
             IEnumerable<Pet> pets = await GetPetsAsync();
             return pets.FirstOrDefault(pet => pet.UserId == userID);
         }
@@ -61,7 +60,8 @@ namespace WebTamagotchi.Data
             HttpResponseMessage response = await _client.PutAsJsonAsync($"{BasePetPath}/{pet.PetId}", pet);
             response.EnsureSuccessStatusCode();
 
-            pet = await response.ReadContentAsync<Pet>();
+            var PetResponse = response.Content.ReadAsStringAsync().Result;
+            pet = JsonConvert.DeserializeObject<Pet>(PetResponse);
             return pet;
         }
 

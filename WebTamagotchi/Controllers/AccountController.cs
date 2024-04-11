@@ -8,8 +8,8 @@ using System.Text;
 
 namespace WebTamagotchi.Controllers
 {
-    [AllowAnonymous, Route("account")]
-    public class AccountControllercs : Controller
+    [AllowAnonymous]
+    public class AccountController : Controller
     {
         private const string GoogleClientId = "794918693940-j1kb0o1gi3utki6th2u6nmoc2i40kqbm.apps.googleusercontent.com";
         private const string GoogleClientSecret = "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";
@@ -36,6 +36,11 @@ namespace WebTamagotchi.Controllers
             });
 
             return Json(claims);
+        }
+
+        public IActionResult Test()
+        {
+            return RedirectToAction("StartGame", "Home", new { UserId = "" });
         }
 
         //private static string BuildGoogleOAuthUrl()

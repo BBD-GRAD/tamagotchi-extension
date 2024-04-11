@@ -1,5 +1,4 @@
 ﻿using System.Net;
-using WebTamagotchi.Helpers;
 
 namespace WebTamagotchi.Models
 {

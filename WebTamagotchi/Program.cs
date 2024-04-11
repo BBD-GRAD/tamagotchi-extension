@@ -16,6 +16,8 @@ builder.Services.AddAuthentication(options =>
     options.ClientId = "794918693940-j1kb0o1gi3utki6th2u6nmoc2i40kqbm.apps.googleusercontent.com";
     options.ClientSecret = "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";
 });
+
+builder.Services.AddSingleton<ViewModel>();
 builder.Services.AddControllersWithViews();
 builder.Services.AddHttpClient<ITamagotchiRepository, TamagotchiRepository>(c =>
 c.BaseAddress = new Uri("https://localhost:7163/"));
@@ -35,13 +37,6 @@ app.UseAuthorization();
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Home}/{action=PlayGround}");
+    pattern: "{controller=Account}/{action=Test}");
 
 app.Run();
-
-void GameLoop(object sender, ElapsedEventArgs e)
-{
-
-    // Game logic
-    var dummy = 1;
-}
