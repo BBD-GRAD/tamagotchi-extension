@@ -167,8 +167,11 @@ namespace WebTamagotchi.Controllers
             {
                 _memory.pet.XP += 1;
                 _memory.pet.Food -= (100 / 180);
+                Math.Clamp(_memory.pet.Food, 0, 100);
                 _memory.pet.Water -= (100 / 60);
+                Math.Clamp(_memory.pet.Water, 0, 100);
                 _memory.pet.Stamina -= (100 / 50);
+                Math.Clamp(_memory.pet.Stamina, 0, 100);
 
                 StateChecks(true);
             }
