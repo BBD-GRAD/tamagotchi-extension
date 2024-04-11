@@ -1,4 +1,5 @@
 ﻿@page "/"
+@inject NavigationService navigationService
 
 <PageTitle>Home</PageTitle>
 
@@ -149,9 +150,16 @@
                         <div class="d-flex align-items-center">
                             <img src="./icons/water.png" class="icon" /> <div id="water-stat">...</div>
                         </div>
-
                     </div>
+                    <button @onclick="AuthenticateUser">Login with Google</button>
 
+                    @code {
+                        private void AuthenticateUser()
+                        {
+                            var url = BuildGoogleOAuthUrl();
+                            navigationService._navigationManager.NavigateTo(url, true);
+                        }
+                    }
                 </div>
             </div>
             <div class="tamagotchi-controls">
