@@ -16,7 +16,7 @@ namespace tamagotchi_pet.Services
 
         static ApiService()
         {
-            client.BaseAddress = new Uri("https://localhost:32802/"); //change env var TODO
+            client.BaseAddress = new Uri("http://tamagotchi-extension.eu-west-1.elasticbeanstalk.com/");
             client.DefaultRequestHeaders.Accept.Clear();
             client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         }
@@ -71,7 +71,7 @@ namespace tamagotchi_pet.Services
                 if (response.IsSuccessStatusCode)
                 {
                     var theme = JsonConvert.DeserializeObject<ThemeDTO>(await response.Content.ReadAsStringAsync());
-                    return theme.themeid;
+                    return theme.ThemeId;
                 }
             }
             catch (HttpRequestException e)
@@ -86,7 +86,7 @@ namespace tamagotchi_pet.Services
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", idToken);
             ThemeDTO themeData = new ThemeDTO
             {
-                themeid = themeId
+                ThemeId = themeId
             };
             try
             {
@@ -111,16 +111,16 @@ namespace tamagotchi_pet.Services
             }
         }
 
-        public static async Task<long> GetXPAsync(string idToken)
+        public static async Task<long> GetHighScoreAsync(string idToken)
         {
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", idToken);
             try
             {
-                HttpResponseMessage response = await client.GetAsync("api/User/xp");
+                HttpResponseMessage response = await client.GetAsync("api/User/highscore");
                 if (response.IsSuccessStatusCode)
                 {
-                    var xp = JsonConvert.DeserializeObject<XPDTO>(await response.Content.ReadAsStringAsync());
-                    return xp.xp;
+                    var highScore = JsonConvert.DeserializeObject<HighScoreDTO>(await response.Content.ReadAsStringAsync());
+                    return highScore.Highscore;
                 }
             }
             catch (HttpRequestException e)
@@ -130,27 +130,27 @@ namespace tamagotchi_pet.Services
             return 0;
         }
 
-        public static async Task<bool> PutXPAsync(string idToken, long xp)
+        public static async Task<bool> UpdateHighscoreAsync(string idToken, long xp)
         {
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", idToken);
 
-            XPDTO xpData = new XPDTO
+            var highScore = new HighScoreDTO
             {
-                xp = xp
+                Highscore = xp
             };
             try
             {
-                var jsonContent = JsonConvert.SerializeObject(xpData);
+                var jsonContent = JsonConvert.SerializeObject(highScore);
                 var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
 
-                HttpResponseMessage response = await client.PutAsync("api/User/xp", content);
+                HttpResponseMessage response = await client.PutAsync("api/User/highscore", content);
                 if (response.IsSuccessStatusCode)
                 {
                     return true;
                 }
                 else
                 {
-                    Logging.Logger.Debug($"Failed to update XP: {response.StatusCode}");
+                    Logging.Logger.Debug($"Failed to update highscore: {response.StatusCode}");
                     return false;
                 }
             }
@@ -227,7 +227,7 @@ namespace tamagotchi_pet.Services
                 }
                 else
                 {
-                    Logging.Logger.Debug($"Failed to update XP: {response.StatusCode}");
+                    Logging.Logger.Debug($"Failed to pet stats: {response.StatusCode}");
                     return false;
                 }
             }

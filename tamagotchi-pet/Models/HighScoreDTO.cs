@@ -2,9 +2,9 @@ using System.ComponentModel.DataAnnotations;
 
 namespace tamagotchi_pet.DTOs
 {
-    public class ThemeDTO
+    public class HighScoreDTO
     {
         [Required]
-        public int ThemeId { get; set; }
+        public long Highscore { get; set; }
     }
 }

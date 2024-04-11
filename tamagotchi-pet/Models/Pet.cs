@@ -1,12 +1,15 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace tamagotchi_pet.Models
 {
+    [Table("Pets")]
     public class Pet
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        [Required]
         public int PetId { get; set; }
 
         [Required]
@@ -20,16 +23,16 @@ namespace tamagotchi_pet.Models
         public long XP { get; set; }
 
         [Required]
-        public double Water { get; set; }
+        public double Health { get; set; }
 
         [Required]
         public double Food { get; set; }
 
         [Required]
-        public double Stamina { get; set; }
+        public double Water { get; set; }
 
         [Required]
-        public double Health { get; set; }
+        public double Stamina { get; set; }
 
         [Required]
         public virtual User User { get; set; }  // Lazy loading

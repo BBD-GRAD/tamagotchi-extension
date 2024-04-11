@@ -51,11 +51,12 @@
     <Compile Include="Dialogs\CreatePetDialog.xaml.cs">
       <DependentUpon>CreatePetDialog.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Models\ThemeDTO.cs" />
-    <Compile Include="Models\UpdatePetStatsDTO.cs" />
-    <Compile Include="Models\XPDTO.cs" />
+    <Compile Include="Models\CreatePetDTO.cs" />
+    <Compile Include="Models\HighScoreDTO.cs" />
     <Compile Include="Models\Pet.cs" />
+    <Compile Include="Models\ThemeDTO.cs" />
     <Compile Include="Models\Themes.cs" />
+    <Compile Include="Models\UpdatePetDTO.cs" />
     <Compile Include="Models\User.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Services\ApiService.cs" />

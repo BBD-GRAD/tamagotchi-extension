@@ -128,7 +128,7 @@ namespace tamagotchi_pet
                     Logging.Logger.Debug("OnLoaded: New tokens retrieved successfully:\n" + JsonConvert.SerializeObject(newTokens, Formatting.Indented));
 
                     _pet = await ApiService.GetPetAsync(_tokens["id_token"]);
-                    //_theme = (Themes)Enum.ToObject(typeof(Themes), await ApiService.GetThemeAsync(_tokens["id_token"])); TODO change dropdown value
+                    _theme = (Themes)Enum.ToObject(typeof(Themes), await ApiService.GetThemeAsync(_tokens["id_token"]));
                 }
 
                 refreshTimer = new System.Timers.Timer(3500000); //58min
@@ -340,17 +340,17 @@ namespace tamagotchi_pet
                         {
                             await ApiService.DeletePetAsync(_tokens["id_token"]);
 
-                            //double prevHigh = await ApiService.GetXPAsync(_tokens["id_Token"]); TODO
-                            //if (_pet.XP > prevHigh)
-                            //{
-                            //    await ApiService.PutXPAsync(_tokens["id_Token"], _pet.XP);
-                            //}
-
-                            //MessageBox.Show($"Your pet died :( with a XP of {_pet.XP:F2}. Highest XP: {prevHigh:F2}");
+                            double prevHigh = await ApiService.GetHighScoreAsync(_tokens["id_token"]);
+                            if (_pet.XP > prevHigh)
+                            {
+                                await ApiService.UpdateHighscoreAsync(_tokens["id_token"], _pet.XP);
+                            }
 
                             Logging.Logger.Debug("GameLoop: Pet has died XP: " + _pet.XP);
                             restartButton.Visibility = Visibility.Visible;
+                            var tempXP = _pet.XP;
                             _pet = null;
+                            MessageBox.Show($"Your pet died :( with a XP of {tempXP:F2}. Highest XP: {prevHigh:F2}");
                         }
                         else
                         {
@@ -417,12 +417,13 @@ namespace tamagotchi_pet
         {
             try
             {
-                //SAVE STATS
                 await AuthFlow.StartAuth();
                 Dictionary<string, string> retrievedTokens = TokenStorage.RetrieveTokens();
                 _tokens = retrievedTokens;
+                await ApiService.AuthenticateAsync(_tokens["id_token"]);
                 _pet = await ApiService.GetPetAsync(_tokens["id_token"]);
-                //_theme = (Themes)Enum.ToObject(typeof(Themes), await ApiService.GetThemeAsync(_tokens["id_token"])); TODO
+                _theme = (Themes)Enum.ToObject(typeof(Themes), await ApiService.GetThemeAsync(_tokens["id_token"]));
+                SetTheme();
 
                 Canvas.SetLeft(petImage, 106);
                 Canvas.SetTop(petImage, 57);
@@ -483,7 +484,7 @@ namespace tamagotchi_pet
                     _theme = settingsDialog.SelectedTheme;
                     simulationSpeed = settingsDialog.SimulationSpeed;
                     SetTheme();
-                    //await ApiService.PutThemeAsync(_tokens["id_token"], (int)_theme); TODO change dropdown value
+                    await ApiService.PutThemeAsync(_tokens["id_token"], (int)_theme);
                 }
             }
             catch (Exception ex)
