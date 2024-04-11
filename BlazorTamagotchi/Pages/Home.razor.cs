@@ -73,6 +73,7 @@ namespace BlazorTamagotchi.Pages
 
         private async Task StartGame()
         {
+            await _apiService.AuthenticateAsync(memoryClass.IdToken);
             Pet pet = await _apiService.GetPetAsync(memoryClass.IdToken);
 
             var dummy = 1;
