@@ -48,14 +48,15 @@ namespace tamagotchi_pet.Utils
             http.Start();
 
             // Creates the OAuth 2.0 authorization request.
-            string authorizationRequest = string.Format("{0}?response_type=code&scope={1}&redirect_uri={2}&client_id={3}&state={4}&code_challenge={5}&code_challenge_method={6}&access_type=offline",
+            string authorizationRequest = string.Format("{0}?response_type=code&scope={1}&redirect_uri={2}&client_id={3}&state={4}&code_challenge={5}&code_challenge_method={6}&access_type=offline&prompt=consent",
                 authorizationEndpoint,
                 System.Uri.EscapeDataString("openid email profile"),
                 System.Uri.EscapeDataString(redirectURI),
                 clientID,
                 state,
                 code_challenge,
-                code_challenge_method);
+                code_challenge_method
+                );
 
             // Opens request in the browser.
             System.Diagnostics.Process.Start(authorizationRequest);

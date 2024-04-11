@@ -210,11 +210,21 @@ namespace tamagotchi_pet.Services
             return null;
         }
 
-        public static async Task<bool> PutPetStatsAsync(string idToken, UpdatePetDTO petStats)
+        public static async Task<bool> PutPetStatsAsync(string idToken, UpdatePetDTO petStats, Pet oldPet)
         {
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", idToken);
             try
             {
+                if (petStats.Health > oldPet.Health)
+                {
+                    petStats.Health = oldPet.Health;
+                }
+
+                if (petStats.XP < oldPet.XP)
+                {
+                    petStats.XP = oldPet.XP;
+                }
+
                 var jsonContent = JsonConvert.SerializeObject(petStats);
                 var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
 
