@@ -165,12 +165,25 @@ namespace WebTamagotchi.Controllers
             if (_memory.pet != null)
             {
                 _memory.pet.XP += 1;
-                _memory.pet.Food -= (100 / 180);
-                Math.Clamp(_memory.pet.Food, 0, 100);
-                _memory.pet.Water -= (100 / 60);
-                Math.Clamp(_memory.pet.Water, 0, 100);
-                _memory.pet.Stamina -= (100 / 50);
-                Math.Clamp(_memory.pet.Stamina, 0, 100);
+
+                if (!_memory.currentState.Equals(PetStates.Eating))
+                {
+                    _memory.pet.Food -= (double)(100d / 180d);
+                    _memory.pet.Food = Math.Round(Math.Clamp(_memory.pet.Food, 0, 100), 2);
+                }
+                
+                if (!_memory.currentState.Equals(PetStates.Drinking))
+                {
+                    _memory.pet.Water -= (100d / 60d);
+                    _memory.pet.Water = Math.Round(Math.Clamp(_memory.pet.Water, 0, 100), 2);
+                }
+                
+                if (!_memory.currentState.Equals(PetStates.Resting))
+                {
+                    _memory.pet.Stamina -= (100d / 50d);
+                    _memory.pet.Stamina = Math.Round(Math.Clamp(_memory.pet.Stamina, 0, 100), 2);
+                }
+                
 
                 StateChecks(true);
             }

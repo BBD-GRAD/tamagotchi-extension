@@ -78,6 +78,10 @@ namespace WebTamagotchi.Data
         private const string GoogleClientId = "794918693940-j1kb0o1gi3utki6th2u6nmoc2i40kqbm.apps.googleusercontent.com";
         private const string GoogleClientSecret = "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";
         private const string GoogleRedirectUri = "https://localhost:32813/api/auth/GoogleCallback";
+        private const string clientID = "794918693940-j1kb0o1gi3utki6th2u6nmoc2i40kqbm.apps.googleusercontent.com"; //TODO STORE ENV VARIABLES
+        private const string clientSecret = "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";
+        private const string authorizationEndpoint = "https://accounts.google.com/o/oauth2/v2/auth";
+        private const string tokenRequestURI = "https://www.googleapis.com/oauth2/v4/token";
 
         public async Task<string> BuildGoogleOAuthUrl()
         {
@@ -91,19 +95,21 @@ namespace WebTamagotchi.Data
 
             using (HttpClient client = new HttpClient())
             {
-                HttpContent content = new StringContent(tokenRequestBody, Encoding.UTF8, "application/x-www-form-urlencoded");
-                HttpResponseMessage response = await client.PostAsync(tokenRequestURI, content);
-                string jsonResponse = await response.Content.ReadAsStringAsync();
-                if (response.IsSuccessStatusCode)
-                {
-                    Dictionary<string, string> tokenEndpointDecoded = JsonConvert.DeserializeObject<Dictionary<string, string>>(jsonResponse);
+                HttpResponseMessage response = await client.GetAsync(authorizationEndpoint);
+                var dummy = 1;
+                //HttpContent content = new StringContent(tokenRequestBody, Encoding.UTF8, "application/x-www-form-urlencoded");
+                //HttpResponseMessage response = await client.PostAsync(authorizationEndpoint, content);
+                //string jsonResponse = await response.Content.ReadAsStringAsync();
+                //if (response.IsSuccessStatusCode)
+                //{
+                //    Dictionary<string, string> tokenEndpointDecoded = JsonConvert.DeserializeObject<Dictionary<string, string>>(jsonResponse);
 
-                    return jsonResponse;
-                }
-                else
-                {
-                    Console.WriteLine("RefreshToken: Failed to refresh tokens");
-                }
+                //    return jsonResponse;
+                //}
+                //else
+                //{
+                //    Console.WriteLine("RefreshToken: Failed to refresh tokens");
+                //}
             }
 
             return "";
@@ -143,11 +149,6 @@ namespace WebTamagotchi.Data
                 return await client.PostAsync("https://oauth2.googleapis.com/token", content);
             }
         }
-
-        private const string clientID = "794918693940-j1kb0o1gi3utki6th2u6nmoc2i40kqbm.apps.googleusercontent.com"; //TODO STORE ENV VARIABLES
-        private const string clientSecret = "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";
-        private const string authorizationEndpoint = "https://accounts.google.com/o/oauth2/v2/auth";
-        private const string tokenRequestURI = "https://www.googleapis.com/oauth2/v4/token";
 
         public static async Task<bool> RefreshTokensAsync(string idToken, string refreshToken)
         {

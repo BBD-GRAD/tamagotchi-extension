@@ -6,6 +6,8 @@
         public Pet pet;
         public PetStates currentState;
         public int gracePeriod;
+        public string userId;
+        public string refreshToken;
         public const float healthDrainConst = 100 / 60;
     }
 

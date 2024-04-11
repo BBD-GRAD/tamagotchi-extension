@@ -15,9 +15,12 @@ namespace WebTamagotchi.Controllers
     {
         private readonly ITamagotchiRepository _tamagotchiRepository;
 
-        public AccountController(ITamagotchiRepository tamagotchiRepository)
+        private ViewModel _memory;
+
+        public AccountController(ITamagotchiRepository tamagotchiRepository, ViewModel memory)
         {
             _tamagotchiRepository = tamagotchiRepository;
+            _memory = memory;
         }
 
         [Route("google-login")]
@@ -26,7 +29,7 @@ namespace WebTamagotchi.Controllers
             var dummy = await _tamagotchiRepository.BuildGoogleOAuthUrl();
             var dummy2 = JsonConvert.DeserializeObject<Dictionary<string, string>>(dummy);
             return Json(true);
-            return RedirectToAction("StartGame", "Home", new { UserId = "" });
+            return RedirectToAction("StartGame", "Home");
         }
     }
 }
