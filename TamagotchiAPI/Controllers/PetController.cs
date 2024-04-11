@@ -24,6 +24,11 @@ namespace TamagotchiAPI.Controllers
             return Unauthorized("User is not authorized to perform this action.");
         }
 
+        private ObjectResult TeapotResponse()
+        {
+            return StatusCode(418, "I'm a teapot");
+        }
+
         // GET: api/Pet
         [HttpGet]
         public async Task<ActionResult<Pet>> GetPet()
@@ -33,9 +38,16 @@ namespace TamagotchiAPI.Controllers
             {
                 return UnauthorizedResponse();
             }
+            
+            var user = await _context.Users.FindAsync(userId);
+
+            if (user == null)
+            {
+                return TeapotResponse();
+            }
 
             var pet = await _context.Pets
-                     .FirstOrDefaultAsync(p => p.UserId == userId);
+                .FirstOrDefaultAsync(p => p.UserId == userId);
 
             if (pet == null)
             {
@@ -53,6 +65,13 @@ namespace TamagotchiAPI.Controllers
             if (string.IsNullOrEmpty(userId))
             {
                 return UnauthorizedResponse();
+            }
+            
+            var user = await _context.Users.FindAsync(userId);
+
+            if (user == null)
+            {
+                return TeapotResponse();
             }
 
             var existingPet = await _context.Pets.FirstOrDefaultAsync(p => p.UserId == userId);
@@ -88,6 +107,13 @@ namespace TamagotchiAPI.Controllers
                 return UnauthorizedResponse();
             }
 
+            var user = await _context.Users.FindAsync(userId);
+
+            if (user == null)
+            {
+                return TeapotResponse();
+            }
+
             var pet = await _context.Pets.FirstOrDefaultAsync(p => p.UserId == userId);
             if (pet == null)
             {
@@ -120,6 +146,13 @@ namespace TamagotchiAPI.Controllers
             if (string.IsNullOrEmpty(userId))
             {
                 return UnauthorizedResponse();
+            }
+            
+            var user = await _context.Users.FindAsync(userId);
+
+            if (user == null)
+            {
+                return TeapotResponse();
             }
 
             var pet = await _context.Pets.FirstOrDefaultAsync(p => p.UserId == userId);

@@ -23,6 +23,11 @@ namespace TamagotchiAPI.Controllers
         {
             return Unauthorized("User is not authorized to perform this action.");
         }
+        
+        private ObjectResult TeapotResponse()
+        {
+            return StatusCode(418, "I'm a teapot");
+        }
 
         // GET: api/User
         [HttpGet]
@@ -38,7 +43,7 @@ namespace TamagotchiAPI.Controllers
 
             if (user == null)
             {
-                return NotFound();
+                return TeapotResponse();
             }
 
             return user;
@@ -78,9 +83,9 @@ namespace TamagotchiAPI.Controllers
             }
         }
         
-        // GET: api/User/Xp
-        [HttpGet("Xp")]
-        public async Task<IActionResult> GetXp()
+        // GET: api/User/HighScore
+        [HttpGet("HighScore")]
+        public async Task<IActionResult> GetHighScore()
         {
             var userId = User.Claims.FirstOrDefault(c => c.Type == "sub")?.Value;
             if (string.IsNullOrEmpty(userId))
@@ -92,23 +97,15 @@ namespace TamagotchiAPI.Controllers
 
             if (user == null)
             {
-                return NotFound();
-            }
-            
-            var pet = await _context.Pets
-                .FirstOrDefaultAsync(p => p.UserId == userId);
-
-            if (pet == null)
-            {
-                return NotFound("User does not have a pet.");
+                return TeapotResponse();
             }
 
-            return Ok(new XpDTO { XP = pet.XP});
+            return Ok(new HighScoreDTO { Highscore = user.Highscore });
         }
 
-        // PUT: api/User/Xp
-        [HttpPut("Xp")]
-        public async Task<IActionResult> PutXp([FromBody] XpDTO XpDTO)
+        // PUT: api/User/HighScore
+        [HttpPut("HighScore")]
+        public async Task<IActionResult> PutHighScore([FromBody] HighScoreDTO highScoreDto)
         {
             var userId = User.Claims.FirstOrDefault(c => c.Type == "sub")?.Value;
             if (string.IsNullOrEmpty(userId))
@@ -120,23 +117,15 @@ namespace TamagotchiAPI.Controllers
 
             if (user == null)
             {
-                return NotFound("User does not exist.");
+                return TeapotResponse();
             }
 
-            if (XpDTO.XP < 0L)
+            if (highScoreDto.Highscore < 0L)
             {
-                return BadRequest("Invalid value for xp!");
-            }
-            
-            var pet = await _context.Pets
-                .FirstOrDefaultAsync(p => p.UserId == userId);
-
-            if (pet == null)
-            {
-                return NotFound("User does not have a pet.");
+                return BadRequest("Invalid value for highscore!");
             }
 
-            pet.XP = XpDTO.XP;
+            user.Highscore = highScoreDto.Highscore;
 
             await _context.SaveChangesAsync();
 
@@ -157,7 +146,7 @@ namespace TamagotchiAPI.Controllers
 
             if (user == null)
             {
-                return NotFound("User does not exist.");
+                return TeapotResponse();
             }
 
             return Ok(new ThemeDTO { ThemeId = user.ThemeId });
@@ -177,7 +166,7 @@ namespace TamagotchiAPI.Controllers
 
             if (user == null)
             {
-                return NotFound("User does not exist.");
+                return TeapotResponse();
             }
 
             var theme = await _context.Themes.FindAsync(ThemeDTO.ThemeId);
@@ -192,26 +181,6 @@ namespace TamagotchiAPI.Controllers
             await _context.SaveChangesAsync();
 
             return Ok();
-        }
-        
-        // GET: api/User/HighScore
-        [HttpGet("HighScore")]
-        public async Task<IActionResult> GetHighScore()
-        {
-            var userId = User.Claims.FirstOrDefault(c => c.Type == "sub")?.Value;
-            if (string.IsNullOrEmpty(userId))
-            {
-                return UnauthorizedResponse();
-            }
-
-            var user = await _context.Users.FindAsync(userId);
-
-            if (user == null)
-            {
-                return NotFound("User does not exist.");
-            }
-
-            return Ok(new HighScoreDTO { Highscore = user.Highscore });
         }
     }
 }
