@@ -1,0 +1,13 @@
+ALTER TABLE dbo.Pets
+    ALTER COLUMN health FLOAT;
+ALTER TABLE dbo.Pets
+    ALTER COLUMN food FLOAT;
+ALTER TABLE dbo.Pets
+    ALTER COLUMN water FLOAT;
+ALTER TABLE dbo.Pets
+    ALTER COLUMN stamina FLOAT;
+ALTER TABLE dbo.Pets
+    ALTER COLUMN xp BIGINT;
+
+ALTER TABLE dbo.Users
+    ALTER COLUMN highscore BIGINT;

@@ -1,0 +1,28 @@
+name: Database Migration with Flyway
+
+on:
+  push:
+    branches: 
+      - "main"
+      - "feature/arinaho/database-setup"
+    paths:
+      - 'tamagotchi-database/scripts/**'
+
+  workflow_dispatch:
+
+jobs:
+  migrate-database:
+    name: Run Flyway Migration
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Copy flyway config file
+      run: cp tamagotchi-database/flyway/flyway.conf flyway.conf
+
+    - name: Run Flyway Migration
+      run: |
+        sudo snap install flyway
+        flyway migrate -configFiles=tamagotchi-database/flyway/flyway.conf
