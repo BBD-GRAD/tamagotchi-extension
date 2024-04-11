@@ -97,6 +97,20 @@ namespace WebTamagotchi.Controllers
             return View("Playground", _memory.pet);
         }
 
+        public IActionResult GetUpdatedModelValues()
+        {
+            var updatedModel = new
+            {
+                _memory.pet.Health,
+                _memory.pet.XP,
+                _memory.pet.Stamina,
+                _memory.pet.Food,
+                _memory.pet.Water,
+                _memory.pet.PetName,
+            };
+            return Json(updatedModel);
+        }
+
         public async Task<ActionResult> CreatePet(string name)
         {
             _memory.pet.PetName = name;
