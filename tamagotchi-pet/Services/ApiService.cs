@@ -17,8 +17,6 @@ namespace tamagotchi_pet.Services
         static ApiService()
         {
             client.BaseAddress = new Uri("http://tamagotchi-extension.eu-west-1.elasticbeanstalk.com/");
-            client.DefaultRequestHeaders.Accept.Clear();
-            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         }
 
         public static async Task<(bool success, string message)> AuthenticateAsync(string idToken)
@@ -43,7 +41,7 @@ namespace tamagotchi_pet.Services
             }
         }
 
-        public static async Task<Pet> GetPetAsync(string idToken)
+        public static async Task<Pet> GetPetAsync(string idToken)//todo dont return null
         {
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", idToken);
             try
@@ -184,7 +182,7 @@ namespace tamagotchi_pet.Services
             return false;
         }
 
-        public static async Task<Pet> CreatePetAsync(string idToken, string petName)
+        public static async Task<Pet> CreatePetAsync(string idToken, string petName) //todo dont return null
         {
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", idToken);
 
@@ -212,12 +210,12 @@ namespace tamagotchi_pet.Services
             return null;
         }
 
-        public static async Task<bool> PutPetStatsAsync(string idToken, Pet pet)
+        public static async Task<bool> PutPetStatsAsync(string idToken, UpdatePetDTO petStats)
         {
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", idToken);
             try
             {
-                var jsonContent = JsonConvert.SerializeObject(pet);
+                var jsonContent = JsonConvert.SerializeObject(petStats);
                 var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
 
                 HttpResponseMessage response = await client.PutAsync("api/Pet", content);

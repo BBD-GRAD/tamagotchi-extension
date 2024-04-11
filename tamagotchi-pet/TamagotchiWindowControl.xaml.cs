@@ -13,6 +13,7 @@ using Serilog;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using tamagotchi_pet.DTOs;
+using System.Threading.Tasks;
 
 namespace tamagotchi_pet
 {
@@ -24,13 +25,15 @@ namespace tamagotchi_pet
         private Dictionary<string, string> _tokens = new Dictionary<string, string>();
         private GameService _gameService;
 
+        public static TamagotchiWindowControl CurrentInstance { get; private set; }
+
         private Color inactiveColor = Colors.LightGray;
         private Color waterActiveColor = Colors.Blue;
         private Color foodActiveColor = Colors.Green;
         private Color staminaActiveColor = Colors.Yellow;
 
         //Time in ms
-        private const double REFRESH_PERIOD = 1000; //1min
+        private const double REFRESH_PERIOD = 250; //250ms
 
         private double simulationSpeed = 1;
 
@@ -63,12 +66,13 @@ namespace tamagotchi_pet
         private bool _isResting = false;
         private bool _isDrinking = false;
         private bool _isDying = false;
+        private bool isDead = false;
 
         private bool _isWaterAlt = false;
         private bool _isFoodAlt = false;
         private bool _isStaminaAlt = false;
 
-        private Pet _pet = null;
+        private Pet _pet = new Pet();
         private Themes _theme = Themes.Red;
 
         static TamagotchiWindowControl()
@@ -82,6 +86,8 @@ namespace tamagotchi_pet
         public TamagotchiWindowControl()
         {
             InitializeComponent();
+            CurrentInstance = this;
+
             petImage.Visibility = Visibility.Hidden;
             restartButton.Visibility = Visibility.Visible;
             petImage.Visibility = Visibility.Hidden;
@@ -91,7 +97,7 @@ namespace tamagotchi_pet
             waterLabel.Text = 0.ToString();
             foodLabel.Text = 0.ToString();
             petNameLabel.Text = string.Empty;
-            xpLabel.Text = string.Empty;
+            xpLabel.Text = "You have no pet :(";
 
             Loaded += OnLoaded;
         }
@@ -128,6 +134,11 @@ namespace tamagotchi_pet
                     Logging.Logger.Debug("OnLoaded: New tokens retrieved successfully:\n" + JsonConvert.SerializeObject(newTokens, Formatting.Indented));
 
                     _pet = await ApiService.GetPetAsync(_tokens["id_token"]);
+
+                    if (_pet == null)
+                    {
+                        isDead = true;
+                    }
                     _theme = (Themes)Enum.ToObject(typeof(Themes), await ApiService.GetThemeAsync(_tokens["id_token"]));
                 }
 
@@ -138,11 +149,22 @@ namespace tamagotchi_pet
 
                 _gameService = new GameService(ref petImage, ref gameCanvas, ref movementArea);
                 SetTheme();
+                SettingsDialog.LastSelectedTheme = _theme;
+
                 StartGame();
             }
             catch (Exception ex)
             {
                 Logging.Logger.Debug("OnLoaded: Error occured: " + ex.Message);
+            }
+        }
+
+        public async Task SaveGameStateAsync()
+        {
+            if (!isDead)
+            {
+                await ApiService.PutPetStatsAsync(_tokens["id_token"], new UpdatePetDTO { XP = _pet.XP, Health = _pet.Health });
+                Logging.Logger.Debug("Game state saved on document save.");
             }
         }
 
@@ -268,7 +290,7 @@ namespace tamagotchi_pet
                 double delta = REFRESH_PERIOD * simulationSpeed;
                 if (_tokens.Count > 0)
                 {
-                    if (_pet == null)
+                    if (isDead || _pet == null)
                     {
                         restartButton.Visibility = Visibility.Visible;
                         petImage.Visibility = Visibility.Hidden;
@@ -336,11 +358,13 @@ namespace tamagotchi_pet
                             _pet.Health = Math.Max(0, _pet.Health - 100 / (TIME_TO_DIE / delta));
                         }
 
-                        if (_pet.Health == 0)
+                        if (_pet.Health == 0 && !isDead)
                         {
+                            isDead = true;
+                            long prevHigh = await ApiService.GetHighScoreAsync(_tokens["id_token"]);
+
                             await ApiService.DeletePetAsync(_tokens["id_token"]);
 
-                            double prevHigh = await ApiService.GetHighScoreAsync(_tokens["id_token"]);
                             if (_pet.XP > prevHigh)
                             {
                                 await ApiService.UpdateHighscoreAsync(_tokens["id_token"], _pet.XP);
@@ -348,9 +372,7 @@ namespace tamagotchi_pet
 
                             Logging.Logger.Debug("GameLoop: Pet has died XP: " + _pet.XP);
                             restartButton.Visibility = Visibility.Visible;
-                            var tempXP = _pet.XP;
-                            _pet = null;
-                            MessageBox.Show($"Your pet died :( with a XP of {tempXP:F2}. Highest XP: {prevHigh:F2}");
+                            MessageBox.Show($"Your pet died :( with a XP of {_pet.XP:F2}. Highest XP: {prevHigh:F2}");
                         }
                         else
                         {
@@ -417,13 +439,20 @@ namespace tamagotchi_pet
         {
             try
             {
+                await SaveGameStateAsync();
                 await AuthFlow.StartAuth();
                 Dictionary<string, string> retrievedTokens = TokenStorage.RetrieveTokens();
                 _tokens = retrievedTokens;
                 await ApiService.AuthenticateAsync(_tokens["id_token"]);
                 _pet = await ApiService.GetPetAsync(_tokens["id_token"]);
+                if (_pet == null)
+                {
+                    isDead = true;
+                }
+
                 _theme = (Themes)Enum.ToObject(typeof(Themes), await ApiService.GetThemeAsync(_tokens["id_token"]));
                 SetTheme();
+                SettingsDialog.LastSelectedTheme = _theme;
 
                 Canvas.SetLeft(petImage, 106);
                 Canvas.SetTop(petImage, 57);
@@ -441,29 +470,45 @@ namespace tamagotchi_pet
         {
             try
             {
-                _timeWithoutFood = 0;
-                _timeWithoutRest = 0;
-                _timeWithoutWater = 0;
-
-                _dyingFromHunger = false;
-                _dyingFromExhaustion = false;
-                _dyingFromThirst = false;
-
-                _isEating = false;
-                _isResting = false;
-                _isDrinking = false;
-                _isDying = false;
-
-                _pet = await ApiService.GetPetAsync(_tokens["id_token"]);
-                if (_pet == null)
+                if (_tokens.Count == 0)
                 {
-                    CreatePetDialog inputDialog = new CreatePetDialog();
-                    if (inputDialog.ShowDialog() == true)
+                    Logging.Logger.Debug("OnLoaded: No token file found");
+                    MessageBox.Show("No previous session tokens found please login.");
+                }
+                else
+                {
+                    _timeWithoutFood = 0;
+                    _timeWithoutRest = 0;
+                    _timeWithoutWater = 0;
+
+                    _dyingFromHunger = false;
+                    _dyingFromExhaustion = false;
+                    _dyingFromThirst = false;
+
+                    _isEating = false;
+                    _isResting = false;
+                    _isDrinking = false;
+                    _isDying = false;
+
+                    _pet = await ApiService.GetPetAsync(_tokens["id_token"]);
+                    if (_pet == null || isDead)
                     {
-                        _pet = await ApiService.CreatePetAsync(_tokens["id_token"], inputDialog.ResponseText);
-                        Logging.Logger.Debug("BtnRestart_Click: Pet created: " + _pet?.PetName);
-                        Canvas.SetLeft(petImage, 106);
-                        Canvas.SetTop(petImage, 57);
+                        CreatePetDialog inputDialog = new CreatePetDialog();
+                        if (inputDialog.ShowDialog() == true)
+                        {
+                            _pet = await ApiService.CreatePetAsync(_tokens["id_token"], inputDialog.ResponseText);
+                            if (_pet != null)
+                            {
+                                isDead = false;
+                            }
+                            else
+                            {
+                                isDead = true;
+                            }
+                            Logging.Logger.Debug("BtnRestart_Click: Pet created: " + _pet?.PetName);
+                            Canvas.SetLeft(petImage, 106);
+                            Canvas.SetTop(petImage, 57);
+                        }
                     }
                 }
             }
