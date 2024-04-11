@@ -2,9 +2,9 @@
 
 namespace tamagotchi_pet.DTOs
 {
-    public class XPDTO
+    public class CreatePetDTO
     {
         [Required]
-        public long xp { get; set; }
+        public string PetName { get; set; }
     }
 }

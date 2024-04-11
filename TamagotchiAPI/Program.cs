@@ -82,6 +82,8 @@ namespace TamagotchiAPI
 
             app.UseHttpsRedirection();
 
+            app.UseCors("OpenCORS");
+
             app.UseAuthentication();
             app.UseAuthorization();
 

@@ -1,4 +1,6 @@
 ﻿using Serilog;
+using System;
+using System.IO;
 
 namespace tamagotchi_pet.Utils
 {
@@ -8,9 +10,15 @@ namespace tamagotchi_pet.Utils
 
         static Logging()
         {
+            var appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+            var myAppFolder = Path.Combine(appDataPath, "Tamagotchi");
+            var logFilePath = Path.Combine(myAppFolder, "logs");
+
+            Directory.CreateDirectory(logFilePath);
+
             Logger = new LoggerConfiguration()
                 .MinimumLevel.Debug()
-                .WriteTo.File("logs/tamagotchi.log", rollingInterval: RollingInterval.Day)
+                .WriteTo.File(Path.Combine(logFilePath, "tamagotchi.log"), rollingInterval: RollingInterval.Day)
                 .CreateLogger();
         }
     }

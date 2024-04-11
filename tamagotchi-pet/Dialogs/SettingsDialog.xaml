@@ -13,7 +13,7 @@
         </ComboBox>
         <TextBlock Text="Set simulation speed:" Margin="0,0,0,0" />
         <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
-            <Slider x:Name="SpeedSlider" Minimum="1" Maximum="100" TickFrequency="1"
+            <Slider x:Name="SpeedSlider" Minimum="1" Maximum="200" TickFrequency="1"
                     SmallChange="0.5" LargeChange="10" Value="1" IsSnapToTickEnabled="True" Width="200" />
             <TextBlock Text="{Binding ElementName=SpeedSlider, Path=Value, StringFormat=' {0:F0}'}"
                        Margin="10,0,0,0" VerticalAlignment="Center" />
