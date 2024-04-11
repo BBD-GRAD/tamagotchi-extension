@@ -1,0 +1,213 @@
+﻿@page "/"
+
+<PageTitle>Home</PageTitle>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Randomly Moving Image</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        .my-body {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .tamagotchi {
+            border-radius: 1rem;
+            width: 100%;
+            max-width: 350px;
+            height: 550px;
+            background-color: darkred;
+            display: flex;
+            flex-direction: column;
+            padding: 1rem 1.5rem 3rem 1.5rem;
+            box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.2), 0px 6px 0px rgba(0, 0, 0, 0.8);
+        }
+
+        .tamagotchi-screen {
+            flex: 2;
+            width: 100%;
+            display: flex;
+        }
+
+        .tamagotchi-inner-screen {
+            background-color: gray;
+            flex: 1;
+            border: solid 0.25rem black;
+            border-radius: 1rem;
+            display: flex;
+            flex-direction: column;
+            padding: 0.5rem;
+        }
+
+        .stats-top {
+            flex: 1;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .icon {
+            height: 2rem;
+            width: 2rem;
+        }
+
+        .health-stats-wrapper {
+            display: flex;
+            gap: 0.25rem;
+        }
+
+        .health-stats {
+            font-size: 0.65rem;
+        }
+
+        .tamagotchi-pet-playground {
+            flex: 4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        .tamagotchi-pet {
+            height: 8rem;
+            position: absolute;
+        }
+
+        .stats-bottom {
+            flex: 1;
+            display: flex;
+            justify-content: space-between;
+            gap: 0.25rem;
+        }
+
+        .tamagotchi-controls {
+            flex: 1;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .control-button {
+            width: 3rem;
+            height: 3rem;
+            background-color: darkgray;
+            border-radius: 50%;
+            box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.2), 0px 3px 0px rgba(0, 0, 0, 0.8);
+        }
+
+            .control-button:nth-child(2n) {
+                transform: translateY(2rem);
+            }
+
+    </style>
+</head>
+<body>
+    <div class="my-body">
+        <div class="tamagotchi">
+            <p class="fw-bold text-light">Pet name</p>
+            <div class="tamagotchi-screen">
+                <div class="tamagotchi-inner-screen">
+                    <div class="stats-top">
+                        <div class="health-stats-wrapper">
+                            <img src="./icons/account.png" class="icon" />
+                            <div class="health-stats fw-bold">
+                                <div id="hp-stat">...</div>
+                                <div id="xp-stat">...</div>
+                            </div>
+
+                        </div>
+
+                        <img src="./icons/settings.png" class="icon" />
+
+                    </div>
+                    <div class="tamagotchi-pet-playground">
+
+                        <img src="./images/pet.png" class="tamagotchi-pet" id="movingImage" />
+
+                    </div>
+                    <div class="stats-bottom">
+
+                        <div class="d-flex align-items-center"> <img src="./icons/food.png" class="icon" /> <div id="food-stat">...</div></div>
+
+                        <div class="d-flex align-items-center">
+                            <img src="./icons/stamina.png" class="icon" /> <div id="stamina-stat">...</div>
+                        </div>
+
+                        <div class="d-flex align-items-center">
+                            <img src="./icons/water.png" class="icon" /> <div id="water-stat">...</div>
+                        </div>
+
+                    </div>
+
+                </div>
+            </div>
+            <div class="tamagotchi-controls">
+                <div class="control-button"><a class="" asp-area="" asp-controller="Home" asp-action="Feed">Eat</a></div>
+                <div class="control-button"><a class="" asp-area="" asp-controller="Home" asp-action="Water">Drink</a></div>
+                <div class="control-button"><a class="" asp-area="" asp-controller="Home" asp-action="Rest">Rest</a></div>
+            </div>
+        </div>
+    </div>
+    <script>
+        var img = document.getElementById('movingImage');
+        function getRandomNumber(min, max) {
+            return Math.random() * (max - min) + min;
+        }
+
+        function moveImage() {
+            var windowWidth = window.innerWidth;
+            var windowHeight = window.innerHeight;
+            var playground = document.querySelector('.tamagotchi-pet-playground');
+            var playgroundWidth = playground.clientWidth;
+            var playgroundHeight = playground.clientHeight;
+
+            var maxX = playgroundWidth - img.width;
+            var maxY = playgroundHeight - img.height;
+
+            var newX = getRandomNumber(0, maxX);
+            var newY = getRandomNumber(0, maxY);
+
+            img.style.left = newX + 'px';
+            img.style.top = newY + 'px';
+        }
+        moveImage();
+        setInterval(moveImage, 3000);
+
+        function updateModelValues() {
+            fetch('/Home/GetUpdatedModelValues') // Replace this URL with your actual endpoint
+                .then(response => response.json())
+                .then(data => {
+                    // Update the UI with the new model values
+
+                    console.table(data);
+
+                    document.getElementById('hp-stat').innerText = `HP: ${data.health}`;
+                    document.getElementById('xp-stat').innerText = `XP: ${data.xp}`;
+                    document.getElementById('food-stat').innerText = `${data.food}`;
+                    document.getElementById('stamina-stat').innerText = `${data.stamina}`;
+                    document.getElementById('water-stat').innerText = `${data.water}`;
+                    // Update other UI elements similarly
+                })
+                .catch(error => console.error('Error fetching updated model values:', error));
+        }
+
+        // Call updateModelValues initially and then every few seconds
+        updateModelValues();
+        setInterval(updateModelValues, 1000);
+    </script>
+</body>
+</html>
+
