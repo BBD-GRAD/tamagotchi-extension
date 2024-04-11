@@ -9,7 +9,16 @@ namespace tamagotchi_pet.Utils
 {
     public static class TokenStorage
     {
-        private static string filePath = "TokenData.dat";
+        // Define the path for the data file
+        private static readonly string appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+
+        private static readonly string myAppFolder = Path.Combine(appDataPath, "Tamagotchi");
+        private static readonly string filePath = Path.Combine(myAppFolder, "TokenData.dat");
+
+        static TokenStorage()
+        {
+            Directory.CreateDirectory(myAppFolder);
+        }
 
         public static void StoreTokens(Dictionary<string, string> tokens)
         {

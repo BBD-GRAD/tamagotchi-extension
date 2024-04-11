@@ -29,6 +29,7 @@ namespace tamagotchi_pet
 
         private DTE _dte;
         private DocumentEvents _documentEvents;
+        private SolutionEvents _solutionEvents;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="TamagotchiWindowCommand"/> class.
@@ -67,6 +68,10 @@ namespace tamagotchi_pet
 
             _documentEvents = _dte.Events.DocumentEvents;
             _documentEvents.DocumentSaved += DocumentSaved;
+            _documentEvents.DocumentClosing += DocumentClosing;
+
+            _solutionEvents = _dte.Events.SolutionEvents;
+            _solutionEvents.BeforeClosing += BeforeSolutionClosing;
         }
 
         private void DocumentSaved(Document document)
@@ -122,6 +127,30 @@ namespace tamagotchi_pet
                     throw new NotSupportedException("Cannot create tool window");
                 }
             });
+        }
+
+        private void BeforeSolutionClosing()
+        {
+            if (TamagotchiWindowControl.CurrentInstance != null)
+            {
+                ThreadHelper.JoinableTaskFactory.RunAsync(async () =>
+                {
+                    await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                    await TamagotchiWindowControl.CurrentInstance.SaveGameStateAsync();
+                }).FileAndForget("tamagotchi/saveBeforeSolutionClosing");
+            }
+        }
+
+        private void DocumentClosing(Document document)
+        {
+            if (TamagotchiWindowControl.CurrentInstance != null)
+            {
+                ThreadHelper.JoinableTaskFactory.RunAsync(async () =>
+                {
+                    await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                    await TamagotchiWindowControl.CurrentInstance.SaveGameStateAsync();
+                }).FileAndForget("tamagotchi/saveDocumentClosing");
+            }
         }
     }
 }

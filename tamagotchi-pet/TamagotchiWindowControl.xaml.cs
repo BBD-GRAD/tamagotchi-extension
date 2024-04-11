@@ -163,8 +163,11 @@ namespace tamagotchi_pet
         {
             if (!isDead)
             {
-                await ApiService.PutPetStatsAsync(_tokens["id_token"], new UpdatePetDTO { XP = _pet.XP, Health = _pet.Health });
-                Logging.Logger.Debug("Game state saved on document save.");
+                if (_tokens.Count != 0)
+                {
+                    await ApiService.PutPetStatsAsync(_tokens["id_token"], new UpdatePetDTO { XP = _pet.XP, Health = _pet.Health });
+                    Logging.Logger.Debug("Game state saved on document save.");
+                }
             }
         }
 
