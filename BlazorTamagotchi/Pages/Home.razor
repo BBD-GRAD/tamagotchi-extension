@@ -1,9 +1,9 @@
 ﻿@page "/"
-@inject NavigationService navigationService
+@using BlazorTamagotchi.Models
+@inject MemoryClass memoryClass
 
 <PageTitle>Home</PageTitle>
 
-<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -116,7 +116,16 @@
     </style>
 </head>
 <body>
-    <div class="my-body">
+    <button @onclick="AuthenticateUser">Login with Google</button>
+    <p>@memoryClass.IdToken</p>
+    @code {
+        private void AuthenticateUser()
+        {
+            var url = BuildGoogleOAuthUrl();
+            _navigationService._navigationManager.NavigateTo(url, true);
+        }
+    }
+    @* <div class="my-body">
         <div class="tamagotchi">
             <p class="fw-bold text-light">Pet name</p>
             <div class="tamagotchi-screen">
@@ -151,15 +160,7 @@
                             <img src="./icons/water.png" class="icon" /> <div id="water-stat">...</div>
                         </div>
                     </div>
-                    <button @onclick="AuthenticateUser">Login with Google</button>
-
-                    @code {
-                        private void AuthenticateUser()
-                        {
-                            var url = BuildGoogleOAuthUrl();
-                            navigationService._navigationManager.NavigateTo(url, true);
-                        }
-                    }
+                    
                 </div>
             </div>
             <div class="tamagotchi-controls">
@@ -215,7 +216,7 @@
         // Call updateModelValues initially and then every few seconds
         updateModelValues();
         setInterval(updateModelValues, 1000);
-    </script>
+    </script> *@
 </body>
 </html>
 
