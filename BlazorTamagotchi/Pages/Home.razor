@@ -13,8 +13,8 @@
         body {
             margin: 0;
             padding: 0;
-            width: 100vw;
-            height: 100vh;
+            width: 100%;
+            height: 100%;
         }
 
         .my-body {
@@ -113,10 +113,20 @@
                 transform: translateY(2rem);
             }
 
+        .pop-up-backdrop {
+            height: 100vh;
+            width: 100vw;
+            position: absolute;
+            display: none;
+            top: 0;
+            left: 0;
+            background-color: rgba(0,0,0,0.4);
+            z-index: 99;
+        }
+
     </style>
 </head>
 <body>
-    <button @onclick="AuthenticateUser">Login with Google</button>
     @code {
         private void AuthenticateUser()
         {
@@ -124,6 +134,29 @@
             _navigationService._navigationManager.NavigateTo(url, true);
         }
     }
+        <div class="pop-up-backdrop justify-content-center align-items-center" id="settings">
+        <div class="card bg-white w-50 w-sd-75 p-2 shadow rounded-3">
+            <h3 >Settings</h3>
+            
+            <select class="mb-4 p-2" onchange="changeTamagotchiColor(this)">
+                <option value="darkred">Red</option>
+                <option value="darkgreen">Green</option>
+                <option value="darkblue">Blue</option>
+                <option value="darkgray">Black</option>
+            </select>
+            <button class="btn btn-outline-success" onclick="closeElement(settings)">submit</button>
+        </div>
+       </div>
+
+        <div class="pop-up-backdrop justify-content-center align-items-center" id="create-pet">
+            <div class="card bg-white w-50 w-sd-75 p-2 shadow rounded-3">
+                <h3>Create a pet</h3>
+                <input type="text" class="my-4 p-2" placeholder="pet name" />
+
+                <button class="btn btn-outline-success" onclick="closeElement(createPet)">submit</button>
+            </div>
+
+    </div>
     <div class="my-body">
         <div class="tamagotchi">
             <p class="fw-bold text-light">Pet name</p>
@@ -131,15 +164,15 @@
                 <div class="tamagotchi-inner-screen">
                     <div class="stats-top">
                         <div class="health-stats-wrapper">
-                            <img src="./icons/account.png" class="icon" />
+                            <img src="./icons/account.png" @onclick="AuthenticateUser" class="icon" />
                             <div class="health-stats fw-bold">
-                                <div id="hp-stat">...</div>
-                                <div id="xp-stat">...</div>
+                                <div id="hp-stat">@Math.Ceiling(Hp)</div>
+                                <div id="xp-stat">@Xp</div>
                             </div>
 
                         </div>
 
-                        <img src="./icons/settings.png" class="icon" />
+                        <img src="./icons/settings.png" class="icon  fade-in-out" onclick="openElement(settings)" />
 
                     </div>
                     <div class="tamagotchi-pet-playground">
@@ -149,25 +182,15 @@
                     </div>
                     <div class="stats-bottom">
 
-                        <div class="d-flex align-items-center"> <img src="./icons/food.png" class="icon" /> <div id="food-stat">...</div></div>
+                        <div class="d-flex align-items-center"> <img src="./icons/food.png" class="icon" /> <div id="food-stat">@Math.Ceiling(Food)</div></div>
 
                         <div class="d-flex align-items-center">
                             <img src="./icons/stamina.png" class="icon" /> 
-                            @if (pet != null)
-                            {
-                                <div id="stamina-stat">
-                                    @pet.Stamina;
-                                </div>
-                            }
-                            else
-                            {
-                                <p>...</p>
-                            }
-
-                        </div>
+                            @Math.Ceiling(Stamina)
+                          </div>
 
                         <div class="d-flex align-items-center">
-                            <img src="./icons/water.png" class="icon" /> <div id="water-stat">...</div>
+                            <img src="./icons/water.png" class="icon" /> <div id="water-stat">@Math.Ceiling(OurWater)</div>
                         </div>
                     </div>
                     
@@ -181,6 +204,24 @@
         </div>
     </div>
     <script>
+
+        const settings = document.getElementById("settings");
+        const createPet = document.getElementById("create-pet");
+
+        function changeTamagotchiColor(selectElement) {
+            var tamagotchi = document.querySelector('.tamagotchi');
+            var selectedColor = selectElement.value;
+            tamagotchi.style.backgroundColor = selectedColor;
+        }
+
+        function openElement(element){
+                element.style.display = 'flex';
+        }
+
+            function closeElement(element) {
+                element.style.display = 'none';
+            }
+
         var img = document.getElementById('movingImage');
         function getRandomNumber(min, max) {
             return Math.random() * (max - min) + min;
@@ -205,28 +246,8 @@
         moveImage();
         setInterval(moveImage, 3000);
 
-        function updateModelValues() {
-            fetch('/Home/GetUpdatedModelValues') // Replace this URL with your actual endpoint
-                .then(response => response.json())
-                .then(data => {
-                    // Update the UI with the new model values
-
-                    console.table(data);
-
-                    document.getElementById('hp-stat').innerText = `HP: ${data.health}`;
-                    document.getElementById('xp-stat').innerText = `XP: ${data.xp}`;
-                    document.getElementById('food-stat').innerText = `${data.food}`;
-                    document.getElementById('stamina-stat').innerText = `${data.stamina}`;
-                    document.getElementById('water-stat').innerText = `${data.water}`;
-                    // Update other UI elements similarly
-                })
-                .catch(error => console.error('Error fetching updated model values:', error));
-        }
-
-        // Call updateModelValues initially and then every few seconds
-        updateModelValues();
-        setInterval(updateModelValues, 1000);
     </script>
 </body>
 </html>
+
 
