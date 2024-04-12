@@ -165,14 +165,13 @@
     </div>
     <div class="my-body">
         <div class="tamagotchi">
-            <p class="fw-bold text-light">Pet name</p>
+            <p class="fw-bold text-light">@PetName</p>
             <div class="tamagotchi-screen">
                 <div class="tamagotchi-inner-screen">
                     <div class="stats-top">
                         <div class="health-stats-wrapper">
                             <img src="./icons/account.png" @onclick="AuthenticateUser" class="icon" />
                             <div class="health-stats fw-bold">
-                                <div>@PetName</div>
                                 <div id="hp-stat">HP:@Hp.ToString("N0")</div>
                                 <div id="xp-stat">XP:@Xp</div>
                                 <div id="xp-stat">HighScore:@currentHighScore</div>
