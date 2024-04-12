@@ -15,6 +15,6 @@ builder.Services.AddScoped<NavigationService>();
 //builder.Services.AddScoped<ApiService>();
 builder.Services.AddSingleton<Pet>();
 builder.Services.AddSingleton<User>();
-builder.Services.AddSingleton<MemoryClass>();
+builder.Services.AddSingleton<MemoryClass>(); 
 
 await builder.Build().RunAsync();
