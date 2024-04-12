@@ -34,7 +34,7 @@ namespace TamagotchiAPI
             })
             .AddJwtBearer(options =>
             {
-                options.MapInboundClaims = false;
+                options.MapInboundClaims = false; 
                 options.Authority = "https://accounts.google.com";
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
