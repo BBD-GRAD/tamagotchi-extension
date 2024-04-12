@@ -6,13 +6,12 @@
              xmlns:vsshell="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0"
              Background="{DynamicResource {x:Static vsshell:VsBrushes.WindowKey}}"
              Foreground="{DynamicResource {x:Static vsshell:VsBrushes.WindowTextKey}}"
-             MinWidth="200"
-             MinHeight="200"
-             MaxHeight="200"
-             MaxWidth="200"
-             mc:Ignorable="d"
-             d:DesignHeight="200" d:DesignWidth="200"
-             Name="MyToolWindow">
+             MinWidth="250"
+             MinHeight="250"
+             MaxHeight="250"
+             MaxWidth="250"
+             mc:Ignorable="d" d:DesignWidth="250"
+             Name="MyToolWindow" Height="214">
     <UserControl.Resources>
         <Style x:Key="RoundButton" TargetType="Button">
             <Setter Property="Width" Value="80" />
@@ -35,18 +34,96 @@
 
     <Grid>
         <Grid.Background>
-            <ImageBrush ImageSource="pack://application:,,,/tamagotchi-pet;component/Resources/background.png" />
+            <ImageBrush x:Name ="backImage" ImageSource="Resources/backgroundBlack.png" />
         </Grid.Background>
+        <Canvas Name="gameCanvas">
+
+            <TextBlock x:Name="petNameLabel" Text="Pet name" Canvas.Left="97" Canvas.Top="7"
+               FontSize="10.5" FontWeight="Bold" Foreground="LightGray" HorizontalAlignment="Center" VerticalAlignment="Top" Width="122">
+                <TextBlock.Effect>
+                    <BlurEffect Radius="1" />
+                </TextBlock.Effect>
+            </TextBlock>
+
+            <Image Name="petImage" Source="Resources/pet.png"
+           Width="38" Height="37" Canvas.Left="106" Canvas.Top="57" />
+
+            <Image Name="waterImage" Source="Resources/water.png"
+                Width="25" Height="25" Canvas.Left="157" Canvas.Top="111" HorizontalAlignment="Left" VerticalAlignment="Center" />
+
+            <Image Name="foodImage" Source="Resources/food.png"
+                Width="27" Height="28" Canvas.Left="40" Canvas.Top="111" HorizontalAlignment="Left" VerticalAlignment="Top" />
+
+            <Image Name="staminaImage" Source="Resources/stamina.png"
+                Width="25" Height="25" Canvas.Left="100" Canvas.Top="111" HorizontalAlignment="Left" VerticalAlignment="Center" />
+
+            <TextBlock x:Name="xpLabel" Canvas.Left="64" Canvas.Top="36"
+           FontSize="10" FontWeight="Bold" Foreground="Black"
+           HorizontalAlignment="Left" VerticalAlignment="Center" Width="120"
+           FontStyle="Italic" Text="XP: 0">
+                <TextBlock.Effect>
+                    <BlurEffect Radius="1" />
+                </TextBlock.Effect>
+            </TextBlock>
+        </Canvas>
 
         <Canvas>
-            <Button Content="" Name="button1" Style="{StaticResource RoundButton}"
-                    Canvas.Left="82" Canvas.Top="168" Height="33" Width="33" HorizontalAlignment="Left" VerticalAlignment="Top"  Click="button2_Click" />
+            <Button Content="" Name="BtnFood" Style="{StaticResource RoundButton}"
+                Canvas.Left="54" Canvas.Top="204" Height="12" Width="13" Click="BtnFood_Click" HorizontalAlignment="Left" VerticalAlignment="Top" />
 
-            <Button Content="" Name="button2" Style="{StaticResource RoundButton}"
-                    Canvas.Left="31" Canvas.Top="151" Height="33" Width="33" HorizontalAlignment="Left" VerticalAlignment="Top" Click="button1_Click" />
+            <Button Content="" Name="BtnStamina" Style="{StaticResource RoundButton}"
+                Canvas.Left="117" Canvas.Top="224" Height="13" Width="13"  Click="BtnStamina_Click" HorizontalAlignment="Left" VerticalAlignment="Top" />
 
-            <Button Content="" Name="button3" Style="{StaticResource RoundButton}"
-                    Canvas.Left="134" Canvas.Top="152" Height="32" Width="33" HorizontalAlignment="Left" VerticalAlignment="Top" Click="button3_Click" />
+            <Button Content="" Name="BtnWater" Style="{StaticResource RoundButton}"
+                Canvas.Left="182" Canvas.Top="204" Height="12" Width="12"  Click="BtnWater_Click" />
+
+            <Button Name="loginButton" BorderThickness="0" Style="{StaticResource RoundButton}"
+                Canvas.Left="43" Canvas.Top="23" Height="26" Width="24"  Click="BtnAccount_Click" HorizontalAlignment="Center" VerticalAlignment="Top">
+                <Button.Background>
+                    <ImageBrush ImageSource="Resources/account.png" />
+                </Button.Background>
+            </Button>
+
+            <Button Name="restartButton"  BorderThickness="0" Style="{StaticResource RoundButton}"
+                Canvas.Left="106" Canvas.Top="56" Height="38" Width="38" HorizontalAlignment="Left" VerticalAlignment="Center" Click="BtnRestart_Click">
+                <Button.Background>
+                    <ImageBrush ImageSource="Resources/replay.png" />
+                </Button.Background>
+            </Button>
+            <Button Name="settingsButton"  BorderThickness="0" Style="{StaticResource RoundButton}"
+                Canvas.Left="179" Canvas.Top="23" Height="26" Width="25" HorizontalAlignment="Left" VerticalAlignment="Top" Click="BtnSettings_Clicked">
+                <Button.Background>
+                    <ImageBrush ImageSource="Resources/settings.png" />
+                </Button.Background>
+            </Button>
         </Canvas>
+        <TextBlock x:Name="foodLabel"
+            FontSize="12.5" FontWeight="Bold" Foreground="Black" Margin="63,116,163,116" Text="100">
+            <TextBlock.Effect>
+                <BlurEffect Radius="1" />
+            </TextBlock.Effect>
+        </TextBlock>
+
+        <TextBlock x:Name="waterLabel"
+            FontSize="12.5" FontWeight="Bold" Foreground="Black" Margin="180,116,45,119" Text="100">
+            <TextBlock.Effect>
+                <BlurEffect Radius="1" />
+            </TextBlock.Effect>
+        </TextBlock>
+
+        <TextBlock x:Name="staminaLabel"
+            FontSize="12.5" FontWeight="Bold" Foreground="Black" Margin="122,116,104,118" Text="100">
+            <TextBlock.Effect>
+                <BlurEffect Radius="1" />
+            </TextBlock.Effect>
+        </TextBlock>
+
+        <ProgressBar Name="hpBar" Canvas.Left="34" Canvas.Top="26" Height="6.25"
+                     Minimum="0" Maximum="100" Value="50"
+                     Foreground="Black" Background="Gray" Margin="63,32,86,212">
+            <ProgressBar.Effect>
+                <BlurEffect Radius="2" />
+            </ProgressBar.Effect>
+        </ProgressBar>
     </Grid>
 </UserControl>

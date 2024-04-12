@@ -1,11 +1,9 @@
 ﻿using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Shell.Interop;
 using System;
 using System.ComponentModel.Design;
-using System.Globalization;
-using System.Threading;
-using System.Threading.Tasks;
+using EnvDTE;
 using Task = System.Threading.Tasks.Task;
+using tamagotchi_pet.Utils;
 
 namespace tamagotchi_pet
 {
@@ -28,6 +26,11 @@ namespace tamagotchi_pet
         /// VS Package that provides this command, not null.
         /// </summary>
         private readonly AsyncPackage package;
+
+        private DTE _dte;
+        private DTEEvents _dteEvents;
+        private DocumentEvents _documentEvents;
+        private SolutionEvents _solutionEvents;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="TamagotchiWindowCommand"/> class.
@@ -54,6 +57,39 @@ namespace tamagotchi_pet
             private set;
         }
 
+        private async Task InitializeDTEAndEventsAsync()
+        {
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(package.DisposalToken);
+
+            _dte = await package.GetServiceAsync(typeof(DTE)) as DTE;
+            if (_dte == null)
+            {
+                throw new InvalidOperationException("Unable to get the DTE service.");
+            }
+
+            _documentEvents = _dte.Events.DocumentEvents;
+            _documentEvents.DocumentSaved += DocumentSaved;
+            _documentEvents.DocumentClosing += DocumentClosing;
+
+            _solutionEvents = _dte.Events.SolutionEvents;
+            _solutionEvents.BeforeClosing += BeforeSolutionClosing;
+
+            _dteEvents = _dte.Events.DTEEvents;
+            _dteEvents.OnBeginShutdown += OnBeginShutdown;
+        }
+
+        private void DocumentSaved(Document document)
+        {
+            if (TamagotchiWindowControl.CurrentInstance != null)
+            {
+                _ = ThreadHelper.JoinableTaskFactory.RunAsync(async () =>
+                {
+                    await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                    await TamagotchiWindowControl.CurrentInstance.SaveGameStateAsync();
+                });
+            }
+        }
+
         /// <summary>
         /// Gets the service provider from the owner package.
         /// </summary>
@@ -77,6 +113,7 @@ namespace tamagotchi_pet
 
             OleMenuCommandService commandService = await package.GetServiceAsync((typeof(IMenuCommandService))) as OleMenuCommandService;
             Instance = new TamagotchiWindowCommand(package, commandService);
+            await Instance.InitializeDTEAndEventsAsync();
         }
 
         /// <summary>
@@ -86,7 +123,7 @@ namespace tamagotchi_pet
         /// <param name="e">The event args.</param>
         private void Execute(object sender, EventArgs e)
         {
-            this.package.JoinableTaskFactory.RunAsync(async delegate
+            _ = this.package.JoinableTaskFactory.RunAsync(async delegate
             {
                 ToolWindowPane window = await this.package.ShowToolWindowAsync(typeof(TamagotchiWindow), 0, true, this.package.DisposalToken);
                 if ((null == window) || (null == window.Frame))
@@ -94,6 +131,42 @@ namespace tamagotchi_pet
                     throw new NotSupportedException("Cannot create tool window");
                 }
             });
+        }
+
+        private void BeforeSolutionClosing()
+        {
+            if (TamagotchiWindowControl.CurrentInstance != null)
+            {
+                ThreadHelper.JoinableTaskFactory.RunAsync(async () =>
+                {
+                    await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                    await TamagotchiWindowControl.CurrentInstance.SaveGameStateAsync();
+                }).FileAndForget("tamagotchi/saveBeforeSolutionClosing");
+            }
+        }
+
+        private void DocumentClosing(Document document)
+        {
+            if (TamagotchiWindowControl.CurrentInstance != null)
+            {
+                ThreadHelper.JoinableTaskFactory.RunAsync(async () =>
+                {
+                    await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                    await TamagotchiWindowControl.CurrentInstance.SaveGameStateAsync();
+                }).FileAndForget("tamagotchi/saveDocumentClosing");
+            }
+        }
+
+        private void OnBeginShutdown()
+        {
+            if (TamagotchiWindowControl.CurrentInstance != null)
+            {
+                ThreadHelper.JoinableTaskFactory.RunAsync(async () =>
+                {
+                    await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                    await TamagotchiWindowControl.CurrentInstance.SaveGameStateAsync();
+                }).FileAndForget("tamagotchi/saveOnVSClose");
+            }
         }
     }
 }

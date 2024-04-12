@@ -1,0 +1,23 @@
+<Window x:Class="tamagotchi_pet.Dialogs.SettingsDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Create Pet" Height="300" Width="300"
+        WindowStartupLocation="CenterScreen" ResizeMode="NoResize">
+    <StackPanel Margin="10">
+        <TextBlock Text="Choose a color for your console:" Margin="0,0,0,10" />
+        <ComboBox x:Name="ColorPicker" Margin="0,0,0,10" SelectedValue="Red">
+            <ComboBoxItem Content="Red" Tag="Red" />
+            <ComboBoxItem Content="Green" Tag="Green" />
+            <ComboBoxItem Content="Blue" Tag="Blue" />
+            <ComboBoxItem Content="Black" Tag="Black" />
+        </ComboBox>
+        <TextBlock Text="Set simulation speed:" Margin="0,0,0,0" />
+        <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+            <Slider x:Name="SpeedSlider" Minimum="1" Maximum="200" TickFrequency="1"
+                    SmallChange="0.5" LargeChange="10" Value="1" IsSnapToTickEnabled="True" Width="200" />
+            <TextBlock Text="{Binding ElementName=SpeedSlider, Path=Value, StringFormat=' {0:F0}'}"
+                       Margin="10,0,0,0" VerticalAlignment="Center" />
+        </StackPanel>
+        <Button Content="Submit" Click="SubmitButton_Click" HorizontalAlignment="Right" Margin="0,10,0,0" />
+    </StackPanel>
+</Window>

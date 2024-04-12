@@ -4,11 +4,11 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
-using BlazorTamagotchi.Models;
-// using BlazorTamagotchi.Utils;
-using BlazorTamagotchi.DTOs;
+using tamagotchi_pet.Models;
+using tamagotchi_pet.Utils;
+using tamagotchi_pet.DTOs;
 
-namespace BlazorTamagotchi.Services
+namespace tamagotchi_pet.Services
 {
     public class ApiService
     {
@@ -17,8 +17,6 @@ namespace BlazorTamagotchi.Services
         static ApiService()
         {
             client.BaseAddress = new Uri("http://tamagotchi-extension.eu-west-1.elasticbeanstalk.com/");
-            client.DefaultRequestHeaders.Accept.Clear();
-            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         }
 
         public static async Task<(bool success, string message)> AuthenticateAsync(string idToken)
@@ -43,7 +41,7 @@ namespace BlazorTamagotchi.Services
             }
         }
 
-        public static async Task<Pet> GetPetAsync(string idToken)
+        public static async Task<Pet> GetPetAsync(string idToken)//todo dont return null
         {
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", idToken);
             try
@@ -57,7 +55,7 @@ namespace BlazorTamagotchi.Services
             }
             catch (HttpRequestException e)
             {
-                Console.WriteLine($"Network error: {e.Message}");
+                Logging.Logger.Debug($"Network error: {e.Message}");
             }
             return null;
         }
@@ -76,7 +74,7 @@ namespace BlazorTamagotchi.Services
             }
             catch (HttpRequestException e)
             {
-                Console.WriteLine($"Network error: {e.Message}");
+                Logging.Logger.Debug($"Network error: {e.Message}");
             }
             return 0;
         }
@@ -100,13 +98,13 @@ namespace BlazorTamagotchi.Services
                 }
                 else
                 {
-                    Console.WriteLine($"Failed to update theme: {response.StatusCode}");
+                    Logging.Logger.Debug($"Failed to update theme: {response.StatusCode}");
                     return false;
                 }
             }
             catch (HttpRequestException e)
             {
-                Console.WriteLine($"Network error: {e.Message}");
+                Logging.Logger.Debug($"Network error: {e.Message}");
                 return false;
             }
         }
@@ -125,7 +123,7 @@ namespace BlazorTamagotchi.Services
             }
             catch (HttpRequestException e)
             {
-                Console.WriteLine($"Network error: {e.Message}");
+                Logging.Logger.Debug($"Network error: {e.Message}");
             }
             return 0;
         }
@@ -150,13 +148,13 @@ namespace BlazorTamagotchi.Services
                 }
                 else
                 {
-                    Console.WriteLine($"Failed to update highscore: {response.StatusCode}");
+                    Logging.Logger.Debug($"Failed to update highscore: {response.StatusCode}");
                     return false;
                 }
             }
             catch (HttpRequestException e)
             {
-                Console.WriteLine($"Network error: {e.Message}");
+                Logging.Logger.Debug($"Network error: {e.Message}");
                 return false;
             }
         }
@@ -169,22 +167,22 @@ namespace BlazorTamagotchi.Services
                 HttpResponseMessage response = await client.DeleteAsync($"api/Pet");
                 if (response.IsSuccessStatusCode)
                 {
-                    Console.WriteLine($"Pet deleted successfully");
+                    Logging.Logger.Debug($"Pet deleted successfully");
                     return true;
                 }
                 else
                 {
-                    Console.WriteLine($"Failed to delete pet. Status code: {response.StatusCode}");
+                    Logging.Logger.Debug($"Failed to delete pet. Status code: {response.StatusCode}");
                 }
             }
             catch (HttpRequestException e)
             {
-                Console.WriteLine($"Network error during pet deletion: {e.Message}");
+                Logging.Logger.Debug($"Network error during pet deletion: {e.Message}");
             }
             return false;
         }
 
-        public static async Task<Pet> CreatePetAsync(string idToken, string petName)
+        public static async Task<Pet> CreatePetAsync(string idToken, string petName) //todo dont return null
         {
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", idToken);
 
@@ -207,16 +205,26 @@ namespace BlazorTamagotchi.Services
             }
             catch (HttpRequestException e)
             {
-                Console.WriteLine($"Network error: {e.Message}");
+                Logging.Logger.Debug($"Network error: {e.Message}");
             }
             return null;
         }
 
-        public static async Task<bool> PutPetStatsAsync(string idToken, UpdatePetDTO petStats)
+        public static async Task<bool> PutPetStatsAsync(string idToken, UpdatePetDTO petStats, Pet oldPet)
         {
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", idToken);
             try
             {
+                if (petStats.Health > oldPet.Health)
+                {
+                    petStats.Health = oldPet.Health;
+                }
+
+                if (petStats.XP < oldPet.XP)
+                {
+                    petStats.XP = oldPet.XP;
+                }
+
                 var jsonContent = JsonConvert.SerializeObject(petStats);
                 var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
 
@@ -227,13 +235,13 @@ namespace BlazorTamagotchi.Services
                 }
                 else
                 {
-                    Console.WriteLine($"Failed to pet stats: {response.StatusCode}");
+                    Logging.Logger.Debug($"Failed to pet stats: {response.StatusCode}");
                     return false;
                 }
             }
             catch (HttpRequestException e)
             {
-                Console.WriteLine($"Network error: {e.Message}");
+                Logging.Logger.Debug($"Network error: {e.Message}");
                 return false;
             }
         }
