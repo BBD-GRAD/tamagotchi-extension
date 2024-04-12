@@ -3,9 +3,9 @@ name: Deploy Tamagotchi (FrontEnd)
 on:
   push:
     branches:
-    - WebTamagotchi
+    - BlazorTamagotchi
     paths:
-    - 'WebTamagotchi/**'
+    - 'BlazorTamagotchi/**'
   workflow_dispatch:
 
 
@@ -31,15 +31,15 @@ jobs:
         run: |
           dotnet restore;
           dotnet publish -r linux-x64 --configuration "Release" --self-contained "true";
-        working-directory: WebTamagotchi
+        working-directory: BlazorTamagotchi
 
       - name: Package artifact
         run: zip -r ../site.zip *
-        working-directory: WebTamagotchi/bin/Release/net8.0/linux-x64/publish
+        working-directory: BlazorTamagotchi/bin/Release/net8.0/linux-x64/publish
 
       - name: Upload artifact to S3
         run: aws s3 cp site.zip s3://${{ secrets.FE_BUCKET_NAME }}/application-${{ github.run_id }}.zip
-        working-directory: WebTamagotchi/bin/Release/net8.0/linux-x64
+        working-directory: BlazorTamagotchi/bin/Release/net8.0/linux-x64
 
   deploy:
     runs-on: ubuntu-latest
