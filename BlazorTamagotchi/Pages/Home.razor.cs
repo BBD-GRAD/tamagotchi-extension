@@ -78,27 +78,38 @@ namespace BlazorTamagotchi.Pages
             {
                 CreatePet("MitchTest");
             }
-
             currentState = PetStates.Happy;
             gracePeriod = 0;
 
-            timer = new System.Timers.Timer(/*TimeSpan.FromMinutes(1).TotalMilliseconds*/5000);
+            timer = new System.Timers.Timer(/*TimeSpan.FromMinutes(1).TotalMilliseconds*/1000);
             timer.AutoReset = true;
             timer.Elapsed += new System.Timers.ElapsedEventHandler(GameLoop);
             timer.Start();
         }
 
         public System.Timers.Timer timer;
-        public Pet pet;
-        public PetStates currentState;
-        public int gracePeriod;
-        public const float healthDrainConst = 100 / 60;
+        public Pet? pet;
+        public long Xp { get { if (pet != null) { return pet.XP; } return 0; } }
+        public double Hp { get { if (pet != null) { return pet.Health; } return 0; } }
+        public double Food { get { if (pet != null) { return pet.Food; } return 0; } }
+        public double Stamina { get { if (pet != null) { return pet.Stamina; } return 0; } }
+        public double OurWater { get { if (pet != null) { return pet.Water; } return 0; } }
 
-        private async void GameLoop(object sender, ElapsedEventArgs e)
+        public PetStates currentState;
+        public double hp = 0;
+        public int gracePeriod;
+        public const float healthDrainConst = 100 / 60*10; //TODO: update this value
+
+        
+
+
+
+        private void GameLoop(object sender, ElapsedEventArgs e)
         {
             if (pet != null)
             {
-                pet.XP += 1;
+
+               pet.XP += 1;
 
                 if (!currentState.Equals(PetStates.Eating))
                 {
@@ -189,7 +200,7 @@ namespace BlazorTamagotchi.Pages
             {
                 if (gracePeriod <= 0)
                 {
-                    pet.Health -= 100 / 60;
+                    hp = pet.Health -= 100 / 60;
                     if (pet.Health <= 0)
                     {
                         ApiService.DeletePetAsync(memoryClass.IdToken);
@@ -260,6 +271,7 @@ namespace BlazorTamagotchi.Pages
                     currentState = PetStates.Happy;
                 }
             }
+            StateHasChanged();
         }
 
         public enum PetStates
