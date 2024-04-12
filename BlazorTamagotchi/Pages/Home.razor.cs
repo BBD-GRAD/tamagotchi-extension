@@ -6,6 +6,7 @@ using Newtonsoft.Json;
 using System;
 using System.Timers;
 using System.Formats.Asn1;
+using Microsoft.JSInterop;
 
 namespace BlazorTamagotchi.Pages
 {
@@ -70,18 +71,49 @@ namespace BlazorTamagotchi.Pages
             }
         }
 
+        [JSInvokable]
+        private void SetTheme(string selectedValue)
+        {
+            int themeIntValue = 1;
+            switch (selectedValue)
+            {
+                case "darkred":
+                    themeIntValue = 1;
+                    break;
+                case "darkgreen":
+                    themeIntValue = 2;
+                    break;
+                case "darkblue":
+                    themeIntValue = 3;
+                    break;
+                case "darkgray":
+                    themeIntValue = 4;
+                    break;
+            }
+
+            themeId = themeIntValue;
+            ApiService.PutThemeAsync(memoryClass.IdToken, themeIntValue);
+        }
+
+        private void Save()
+        {
+            if (pet != null)
+            {
+                ApiService.PutPetStatsAsync(memoryClass.IdToken ,new DTOs.UpdatePetDTO() { Health = pet.Health, XP = pet.XP});
+            }
+        }
+
         private async Task StartGame()
         {
             await ApiService.AuthenticateAsync(memoryClass.IdToken);
+            themeId = await ApiService.GetThemeAsync(memoryClass.IdToken);
             pet = await ApiService.GetPetAsync(memoryClass.IdToken);
-            if (pet == null)
-            {
-                CreatePet("MitchTest");
-            }
+            currentHighScore = await ApiService.GetHighScoreAsync(memoryClass.IdToken);
+
             currentState = PetStates.Happy;
             gracePeriod = 0;
 
-            timer = new System.Timers.Timer(/*TimeSpan.FromMinutes(1).TotalMilliseconds*/1000);
+            timer = new System.Timers.Timer(1000);
             timer.AutoReset = true;
             timer.Elapsed += new System.Timers.ElapsedEventHandler(GameLoop);
             timer.Start();
@@ -94,53 +126,44 @@ namespace BlazorTamagotchi.Pages
         public double Food { get { if (pet != null) { return pet.Food; } return 0; } }
         public double Stamina { get { if (pet != null) { return pet.Stamina; } return 0; } }
         public double OurWater { get { if (pet != null) { return pet.Water; } return 0; } }
+        public string PetName { get { if (pet != null) { return pet.PetName; } return ""; } }
 
         public PetStates currentState;
         public double hp = 0;
         public int gracePeriod;
-        public const float healthDrainConst = 100 / 60*10; //TODO: update this value
-
-        
-
-
+        public int themeId = 1;
+        public long currentHighScore;
 
         private void GameLoop(object sender, ElapsedEventArgs e)
         {
             if (pet != null)
             {
-
-               pet.XP += 1;
+                pet.XP += 1;
 
                 if (!currentState.Equals(PetStates.Eating))
                 {
-                    pet.Food -= (double)(100d / 180d);
+                    pet.Food -= (double)(100d / 10800);
                     pet.Food = Math.Round(Math.Clamp(pet.Food, 0, 100), 2);
                 }
 
                 if (!currentState.Equals(PetStates.Drinking))
                 {
-                    pet.Water -= (100d / 60d);
+                    pet.Water -= (100d / 4);
                     pet.Water = Math.Round(Math.Clamp(pet.Water, 0, 100), 2);
                 }
 
                 if (!currentState.Equals(PetStates.Resting))
                 {
-                    pet.Stamina -= (100d / 50d);
+                    pet.Stamina -= (100d / 3000d);
                     pet.Stamina = Math.Round(Math.Clamp(pet.Stamina, 0, 100), 2);
                 }
 
                 StateChecks(true);
             }
-            else
-            {
-                // Popup Create pet
-            }
         }
         private async void CheckScore()
         {
-            long currentHighScore = await ApiService.GetHighScoreAsync(memoryClass.IdToken);
-
-            if (currentHighScore > pet.XP)
+            if (currentHighScore < pet.XP)
             {
                 ApiService.UpdateHighscoreAsync(memoryClass.IdToken, pet.XP);
             }
@@ -148,8 +171,7 @@ namespace BlazorTamagotchi.Pages
 
         public async void CreatePet(string petName)
         {
-            await ApiService.CreatePetAsync(memoryClass.IdToken, "petName");
-            pet = await ApiService.GetPetAsync(memoryClass.IdToken);
+            pet = await ApiService.CreatePetAsync(memoryClass.IdToken, petName);
         }
 
         public void Feed()
@@ -200,7 +222,7 @@ namespace BlazorTamagotchi.Pages
             {
                 if (gracePeriod <= 0)
                 {
-                    hp = pet.Health -= 100 / 60;
+                    hp = pet.Health -= 100 / 4;
                     if (pet.Health <= 0)
                     {
                         ApiService.DeletePetAsync(memoryClass.IdToken);
@@ -208,6 +230,10 @@ namespace BlazorTamagotchi.Pages
                         currentState = PetStates.Happy;
                         pet = null;
                     }
+                }
+                else
+                {
+                    gracePeriod--;
                 }
             }
             else if (currentState.Equals(PetStates.Happy))
@@ -233,7 +259,7 @@ namespace BlazorTamagotchi.Pages
             {
                 if (updateValues)
                 {
-                    pet.Water += (100 / 5);
+                    pet.Water += (100f / 300f);
                 }
 
                 if (pet.Water >= 100)
@@ -247,7 +273,7 @@ namespace BlazorTamagotchi.Pages
             {
                 if (updateValues)
                 {
-                    pet.Food += (100 / 15);
+                    pet.Food += (100f / 900f);
                 }
 
                 if (pet.Food >= 100)
@@ -261,7 +287,7 @@ namespace BlazorTamagotchi.Pages
             {
                 if (updateValues)
                 {
-                    pet.Stamina += (100 / 10);
+                    pet.Stamina += (100f / 600f);
                 }
 
                 if (pet.Stamina >= 100)

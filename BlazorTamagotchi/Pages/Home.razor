@@ -137,7 +137,10 @@
         <div class="pop-up-backdrop justify-content-center align-items-center" id="settings">
         <div class="card bg-white w-50 w-sd-75 p-2 shadow rounded-3">
             <h3 >Settings</h3>
-            
+            SetTheme
+            @code {
+                private string selectedValue;
+            }
             <select class="mb-4 p-2" onchange="changeTamagotchiColor(this)">
                 <option value="darkred">Red</option>
                 <option value="darkgreen">Green</option>
@@ -151,9 +154,12 @@
         <div class="pop-up-backdrop justify-content-center align-items-center" id="create-pet">
             <div class="card bg-white w-50 w-sd-75 p-2 shadow rounded-3">
                 <h3>Create a pet</h3>
-                <input type="text" class="my-4 p-2" placeholder="pet name" />
+            @code {
+                private string inputValue;
+            }
+            <input type="text" class="my-4 p-2" placeholder="pet name" @bind="inputValue"/>
 
-                <button class="btn btn-outline-success" onclick="closeElement(createPet)">submit</button>
+            <button class="btn btn-outline-success" onclick="closeElement(createPet)" @onfocus="@(() => CreatePet(inputValue))">submit</button>
             </div>
 
     </div>
@@ -166,32 +172,33 @@
                         <div class="health-stats-wrapper">
                             <img src="./icons/account.png" @onclick="AuthenticateUser" class="icon" />
                             <div class="health-stats fw-bold">
-                                <div id="hp-stat">@Math.Ceiling(Hp)</div>
-                                <div id="xp-stat">@Xp</div>
+                                <div>@PetName</div>
+                                <div id="hp-stat">HP:@Hp.ToString("N0")</div>
+                                <div id="xp-stat">XP:@Xp</div>
+                                <div id="xp-stat">HighScore:@currentHighScore</div>
                             </div>
-
                         </div>
+                        <div>
 
-                        <img src="./icons/settings.png" class="icon  fade-in-out" onclick="openElement(settings)" />
+                        <img src="./icons/settings.png" class="icon" onclick="openElement(settings)" />
+                        <img src="./icons/save.png" class="icon" @onclick="Save" />
+                        </div>
 
                     </div>
                     <div class="tamagotchi-pet-playground">
-
-                        <img src="./images/pet.png" class="tamagotchi-pet" id="movingImage" />
-
+                        @if (pet == null)
+                        {
+                            <img src="./icons/replay.png" class="icon fade-in-out" onclick="openElement(createPet)" />
+                        }
+                        else
+                        { 
+                            <img src="./images/pet.png" class="tamagotchi-pet" id="movingImage" />
+                        }
                     </div>
                     <div class="stats-bottom">
-
-                        <div class="d-flex align-items-center"> <img src="./icons/food.png" class="icon" /> <div id="food-stat">@Math.Ceiling(Food)</div></div>
-
-                        <div class="d-flex align-items-center">
-                            <img src="./icons/stamina.png" class="icon" /> 
-                            @Math.Ceiling(Stamina)
-                          </div>
-
-                        <div class="d-flex align-items-center">
-                            <img src="./icons/water.png" class="icon" /> <div id="water-stat">@Math.Ceiling(OurWater)</div>
-                        </div>
+                        <div class="d-flex align-items-center"> <img src="./icons/food.png" class="icon" /> <div id="food-stat">@Food.ToString("N0")</div></div>
+                        <div class="d-flex align-items-center"> <img src="./icons/stamina.png" class="icon" />@Stamina.ToString("N0")</div>
+                        <div class="d-flex align-items-center"><img src="./icons/water.png" class="icon <%= @OurWater <= 0 ? 'fade-in-out' : '' %>" /> <div id="water-stat">@OurWater.ToString("N0")</div></div>
                     </div>
                     
                 </div>
@@ -212,6 +219,7 @@
             var tamagotchi = document.querySelector('.tamagotchi');
             var selectedColor = selectElement.value;
             tamagotchi.style.backgroundColor = selectedColor;
+            DotNet.invokeMethodAsync('SetTheme', 'HandleJsInvoke', selectedColor);
         }
 
         function openElement(element){

@@ -1,10 +1,11 @@
 ﻿.fade-in-out {
-    animation: fadeInOut 4s ease-in-out infinite alternate;
+    animation: fadeInOut 2s ease-in-out infinite alternate;
+    z-index: 50;
 }
 
 @keyframes fadeInOut {
     0% {
-        opacity: 0;
+        opacity: 25%;
     }
 
     100% {
