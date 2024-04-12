@@ -3,67 +3,45 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
-using System.Windows.Shapes;
 
 namespace tamagotchi_pet.Services
 {
     internal class GameService
     {
         private readonly Image petImage;
-        private readonly Canvas gameCanvas;
-        private readonly Rectangle movementArea;
 
-        public GameService(ref Image petImage, ref Canvas gameCanvas, ref Rectangle movementArea)
+        private double minX = 45;
+        private double maxX = 165;
+        private bool movingToMax = true;
+
+        public GameService(ref Image petImage)
         {
             this.petImage = petImage;
-            this.gameCanvas = gameCanvas;
-            this.movementArea = movementArea;
         }
 
-        private (double x, double y) GenerateNewTargetPosition()
+        public void AnimatePet()
         {
-            double minX = movementArea.Margin.Left;
-            double minY = movementArea.Margin.Top;
-            double maxX = gameCanvas.ActualWidth - movementArea.Margin.Right - petImage.Width;
-            double maxY = gameCanvas.ActualHeight - movementArea.Margin.Bottom - petImage.Height;
-
-            Random rand = new Random();
-            var targetX = rand.Next((int)minX, (int)maxX);
-            var targetY = rand.Next((int)minY, (int)maxY);
-            return (targetX, targetY);
-        }
-
-        public void AnimatePetToPosition()
-        {
-            (double newX, double newY) = GenerateNewTargetPosition();
-
             double currentX = Canvas.GetLeft(petImage);
-            double currentY = Canvas.GetTop(petImage);
+            double targetX = movingToMax ? maxX : minX;
 
-            double distance = Math.Sqrt(Math.Pow(newX - currentX, 2) + Math.Pow(newY - currentY, 2));
-
-            double speed = 10;
-
-            double timeInSeconds = distance / speed;
+            double timeInSeconds = 10;
             Duration animationDuration = new Duration(TimeSpan.FromSeconds(timeInSeconds));
 
             var xAnimation = new DoubleAnimation()
             {
                 From = currentX,
-                To = newX,
-                Duration = animationDuration,
-                EasingFunction = new QuadraticEase() { EasingMode = EasingMode.EaseInOut }
-            };
-            var yAnimation = new DoubleAnimation()
-            {
-                From = currentY,
-                To = newY,
+                To = targetX,
                 Duration = animationDuration,
                 EasingFunction = new QuadraticEase() { EasingMode = EasingMode.EaseInOut }
             };
 
+            xAnimation.Completed += (sender, e) =>
+            {
+                movingToMax = !movingToMax;
+                AnimatePet();
+            };
+
             petImage.BeginAnimation(Canvas.LeftProperty, xAnimation);
-            petImage.BeginAnimation(Canvas.TopProperty, yAnimation);
         }
 
         public double UpdateResource(double resource, double depletionTime, double refillTime, bool isActive, Button resourceButton, Color activeColor, Color inactiveColor, double delta, double resourceMax = 100)

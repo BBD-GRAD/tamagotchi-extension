@@ -157,11 +157,12 @@ namespace tamagotchi_pet
                 refreshTimer.AutoReset = true;
                 refreshTimer.Enabled = true;
 
-                _gameService = new GameService(ref petImage, ref gameCanvas, ref movementArea);
+                _gameService = new GameService(ref petImage);
                 SetTheme();
                 SettingsDialog.LastSelectedTheme = _theme;
 
                 StartGame();
+                _gameService.AnimatePet();
             }
             catch (Exception ex)
             {
@@ -319,7 +320,6 @@ namespace tamagotchi_pet
                     }
                     else
                     {
-                        _gameService.AnimatePetToPosition();
                         petNameLabel.Text = _pet.PetName;
                         xpLabel.Text = "XP: " + _pet.XP.ToString();
                         hpBar.Value = _pet.Health;

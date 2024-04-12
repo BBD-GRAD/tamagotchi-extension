@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
     <Metadata>
-        <Identity Id="tamagotchi_pet.8e0171f2-cf4a-4f06-8bf3-b39444135e39" Version="1.1.2" Language="en-US" Publisher="Jacques Mouton" />
+        <Identity Id="tamagotchi_pet.8e0171f2-cf4a-4f06-8bf3-b39444135e39" Version="1.2.0" Language="en-US" Publisher="Jacques Mouton" />
         <DisplayName>Tamagotchi Pet</DisplayName>
         <Description xml:space="preserve">This extension allows you to play the popular Japanese game Tamagotchi instead of writing bad code.</Description>
         <Icon>2532690.png</Icon>
