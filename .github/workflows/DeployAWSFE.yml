@@ -34,7 +34,7 @@ jobs:
         working-directory: BlazorTamagotchi
 
       - name: Package artifact
-        run: zip -r ../site.zip *
+        run: zip -r site.zip *
         working-directory: BlazorTamagotchi/bin/Release/net8.0/publish/
 
       - name: Upload artifact to S3

@@ -6,6 +6,6 @@ namespace BlazorTamagotchi.Models
     {
         public int ThemeId { get; set; }
 
-        public string ThemeName { get; set; }
+        public string ThemeName { get; set; } 
     }
 }
