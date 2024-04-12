@@ -28,6 +28,7 @@ namespace tamagotchi_pet
         private readonly AsyncPackage package;
 
         private DTE _dte;
+        private DTEEvents _dteEvents;
         private DocumentEvents _documentEvents;
         private SolutionEvents _solutionEvents;
 
@@ -72,6 +73,9 @@ namespace tamagotchi_pet
 
             _solutionEvents = _dte.Events.SolutionEvents;
             _solutionEvents.BeforeClosing += BeforeSolutionClosing;
+
+            _dteEvents = _dte.Events.DTEEvents;
+            _dteEvents.OnBeginShutdown += OnBeginShutdown;
         }
 
         private void DocumentSaved(Document document)
@@ -150,6 +154,18 @@ namespace tamagotchi_pet
                     await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
                     await TamagotchiWindowControl.CurrentInstance.SaveGameStateAsync();
                 }).FileAndForget("tamagotchi/saveDocumentClosing");
+            }
+        }
+
+        private void OnBeginShutdown()
+        {
+            if (TamagotchiWindowControl.CurrentInstance != null)
+            {
+                ThreadHelper.JoinableTaskFactory.RunAsync(async () =>
+                {
+                    await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                    await TamagotchiWindowControl.CurrentInstance.SaveGameStateAsync();
+                }).FileAndForget("tamagotchi/saveOnVSClose");
             }
         }
     }

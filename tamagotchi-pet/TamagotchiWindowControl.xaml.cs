@@ -72,7 +72,7 @@ namespace tamagotchi_pet
         private bool _isFoodAlt = false;
         private bool _isStaminaAlt = false;
 
-        private Pet _pet = new Pet();
+        private Pet _pet = null;
         private Themes _theme = Themes.Red;
 
         static TamagotchiWindowControl()
@@ -128,6 +128,16 @@ namespace tamagotchi_pet
                 {
                     Logging.Logger.Debug("OnLoaded: Old tokens retrieved successfully:\n" + JsonConvert.SerializeObject(oldTokens, Formatting.Indented));
                     _tokens = oldTokens;
+
+                    if (_tokens.TryGetValue("refresh_token", out var refreshToken) && refreshToken != null)
+                    {
+                        await AuthFlow.RefreshTokensAsync(_tokens["id_token"], refreshToken);
+                    }
+                    else
+                    {
+                        Console.WriteLine("Refresh token is missing or null.");
+                    }
+
                     await AuthFlow.RefreshTokensAsync(_tokens["id_token"], _tokens["refresh_token"]);
                     Dictionary<string, string> newTokens = TokenStorage.RetrieveTokens();
                     _tokens = newTokens;
@@ -147,11 +157,12 @@ namespace tamagotchi_pet
                 refreshTimer.AutoReset = true;
                 refreshTimer.Enabled = true;
 
-                _gameService = new GameService(ref petImage, ref gameCanvas, ref movementArea);
+                _gameService = new GameService(ref petImage);
                 SetTheme();
                 SettingsDialog.LastSelectedTheme = _theme;
 
                 StartGame();
+                _gameService.AnimatePet();
             }
             catch (Exception ex)
             {
@@ -165,7 +176,8 @@ namespace tamagotchi_pet
             {
                 if (_tokens.Count != 0)
                 {
-                    await ApiService.PutPetStatsAsync(_tokens["id_token"], new UpdatePetDTO { XP = _pet.XP, Health = _pet.Health });
+                    Pet oldPet = await ApiService.GetPetAsync(_tokens["id_token"]);
+                    await ApiService.PutPetStatsAsync(_tokens["id_token"], new UpdatePetDTO { XP = _pet.XP, Health = _pet.Health }, oldPet);
                     Logging.Logger.Debug("Game state saved on document save.");
                 }
             }
@@ -308,7 +320,6 @@ namespace tamagotchi_pet
                     }
                     else
                     {
-                        _gameService.AnimatePetToPosition();
                         petNameLabel.Text = _pet.PetName;
                         xpLabel.Text = "XP: " + _pet.XP.ToString();
                         hpBar.Value = _pet.Health;
@@ -465,9 +476,6 @@ namespace tamagotchi_pet
                 Logging.Logger.Debug("BtnAccount_Click: Error logging in: " + ex.Message);
             }
         }
-
-        //TODO SAVE STATS on close/onsave
-        // await ApiService.PutPetStatsAsync(_tokens["id_Token"], _pet); TODO NB
 
         private async void BtnRestart_Click(object sender, RoutedEventArgs e)
         {
