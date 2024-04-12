@@ -35,11 +35,11 @@ jobs:
 
       - name: Package artifact
         run: zip -r ../site.zip *
-        working-directory: BlazorTamagotchi/bin/Release/net8.0/linux-x64/publish
+        working-directory: BlazorTamagotchi/bin/Release/net8.0/publish/
 
       - name: Upload artifact to S3
         run: aws s3 cp site.zip s3://${{ secrets.FE_BUCKET_NAME }}/application-${{ github.run_id }}.zip
-        working-directory: BlazorTamagotchi/bin/Release/net8.0/linux-x64
+        working-directory: BlazorTamagotchi/bin/Release/net8.0/publish/
 
   deploy:
     runs-on: ubuntu-latest
